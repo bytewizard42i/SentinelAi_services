@@ -1,5 +1,7 @@
 # SentinelAI Services Hackathon Project
 
+![SentinelAI Services Banner](media/readme/project-banner.svg)
+
 ## Resources
 
 - **ElizaOS Fork**: https://github.com/bytewizard42i/Eliza-Base-Agent-johns_copy
