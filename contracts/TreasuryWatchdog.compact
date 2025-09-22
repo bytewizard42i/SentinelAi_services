@@ -8,7 +8,7 @@ pragma language_version 0.17;
 import CompactStandardLibrary;
 
 // User behavior profile structure
-export struct BehaviorProfile {
+export struct UserBehaviorProfile {
     avgTransactionSize: Uint<64>,
     typicalActiveHours: Uint<8>,  // Bitmap for 3-hour blocks (8 blocks = 24 hours)
     transactionCount: Uint<32>,
@@ -38,7 +38,7 @@ export struct Challenge {
 }
 
 // Contract state
-export ledger userProfiles: Map<Bytes<32>, BehaviorProfile>;
+export ledger userProfiles: Map<Bytes<32>, UserBehaviorProfile>;
 export ledger activeAlerts: Map<Bytes<32>, AnomalyAlert>;
 export ledger pendingChallenges: Map<Bytes<32>, Challenge>;
 export ledger frozenAccounts: Set<Bytes<32>>;
@@ -57,7 +57,7 @@ export circuit initializeProfile(isAdmin: Bool): [] {
     assert !userProfiles.member(userIdDisclosed)
         "Profile already exists";
     
-    const newProfile = BehaviorProfile {
+    const newProfile = UserBehaviorProfile {
         avgTransactionSize: 0,
         typicalActiveHours: 0,
         transactionCount: 0,
