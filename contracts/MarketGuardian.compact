@@ -3,7 +3,7 @@
 // Copyright (C) 2025 SentinelAI Services
 // SPDX-License-Identifier: Apache-2.0
 
-pragma language_version 0.15;
+pragma language_version 0.17;
 
 import CompactStandardLibrary;
 
