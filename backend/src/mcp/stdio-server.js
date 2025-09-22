@@ -3,6 +3,8 @@
 
 import { Server } from '@modelcontextprotocol/sdk';
 import { logger } from '../utils/logger.js';
+import { RebalanceTool } from '../tools/rebalance.js';
+import { AnomalyDetector } from '../tools/anomaly-check.js';
 
 export class MCPServer {
   constructor(midnightService) {
@@ -11,6 +13,10 @@ export class MCPServer {
       name: 'sentinel-treasury-mcp',
       version: '1.0.0'
     });
+    
+    // Initialize AI tools
+    this.rebalancer = new RebalanceTool(midnightService);
+    this.anomalyDetector = new AnomalyDetector(midnightService);
     
     this.tools = this.defineTools();
   }
@@ -108,6 +114,18 @@ export class MCPServer {
           const allocation = await this.midnight.callContract('profiler', 'getUserAllocation', [userId]);
           return allocation;
         }
+      },
+      
+      // PILLAR 1: Market Guardian Tool
+      rebalance_treasury: {
+        ...this.rebalancer.getSchema(),
+        handler: async (params) => this.rebalancer.execute(params)
+      },
+      
+      // PILLAR 2: Anomaly Detection Tool
+      detect_anomaly: {
+        ...this.anomalyDetector.getSchema(),
+        handler: async (params) => this.anomalyDetector.execute(params)
       },
       
       trigger_rebalance: {

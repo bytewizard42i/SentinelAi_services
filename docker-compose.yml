@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Midnight Proof Server v4
+  # Midnight Proof Server v4 - Core Blockchain Proofs
   proof-server:
     image: midnightnetwork/proof-server:4.0.0
     container_name: sentinel-proof-server
@@ -15,69 +15,111 @@ services:
     networks:
       - sentinel-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6300/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Main Treasury Wallet (Port 3000)
-  treasury-wallet:
+  # MCP Server - Model Context Protocol for AI Integration
+  mcp-server:
     build: ./backend
-    container_name: sentinel-treasury-wallet
+    container_name: sentinel-mcp-server
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - AGENT_ID=treasury_main
+      - NODE_ENV=${NODE_ENV:-production}
+      - AGENT_ID=workshop-agent
       - PORT=3000
       - MIDNIGHT_NETWORK=testnet
+      - MIDNIGHT_NODE_URL=${MIDNIGHT_NODE_URL:-https://node.testnet.midnight.network}
+      - MIDNIGHT_INDEXER_URL=${MIDNIGHT_INDEXER_URL:-https://indexer.testnet.midnight.network}
       - MIDNIGHT_PROOF_SERVER_URL=http://proof-server:6300
+      - MIDNIGHT_SEED=${MIDNIGHT_SEED}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-dummy}
     volumes:
-      - treasury-storage:/app/storage
-      - treasury-logs:/app/logs
+      - ./storage:/app/storage
+      - ./backend:/app
     networks:
       - sentinel-network
     depends_on:
-      - proof-server
+      proof-server:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: yarn dev
 
-  # Watchdog Service Wallet (Port 3001)
-  watchdog-wallet:
+  # ElizaOS Agent - Natural Language Interface
+  eliza-agent:
+    image: node:22.15.1-alpine
+    container_name: sentinel-eliza
+    ports:
+      - "5000:5000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-dummy}
+      - ELIZA_DB=/app/data/eliza.db
+      - MCP_URL=http://mcp-server:3000
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_APP_ID=${DISCORD_APP_ID}
+    volumes:
+      - ./eliza_os:/app
+      - eliza-data:/app/data
+    networks:
+      - sentinel-network
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "if [ ! -d node_modules ]; then npm install -g bun && bun install; fi && bun start"
+
+  # Multi-Account Support: Admin Wallet (Port 3001)
+  admin-wallet:
     build: ./backend
-    container_name: sentinel-watchdog-wallet
+    container_name: sentinel-admin-wallet
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=production
-      - AGENT_ID=watchdog_agent
+      - NODE_ENV=${NODE_ENV:-production}
+      - AGENT_ID=admin_agent
       - PORT=3001
       - MIDNIGHT_NETWORK=testnet
       - MIDNIGHT_PROOF_SERVER_URL=http://proof-server:6300
+      - MIDNIGHT_SEED=${ADMIN_SEED}
     volumes:
-      - watchdog-storage:/app/storage
-      - watchdog-logs:/app/logs
+      - admin-storage:/app/storage
+      - ./backend:/app
     networks:
       - sentinel-network
     depends_on:
-      - proof-server
+      proof-server:
+        condition: service_healthy
     restart: unless-stopped
+    profiles: ["multi-account"]
+    command: yarn dev
 
-  # Guardian Service Wallet (Port 3002)
-  guardian-wallet:
+  # DAO CLI Tools - For Testing & Demo
+  dao-cli:
     build: ./backend
-    container_name: sentinel-guardian-wallet
-    ports:
-      - "3002:3002"
+    container_name: sentinel-dao-cli
     environment:
-      - NODE_ENV=production
-      - AGENT_ID=guardian_agent
-      - PORT=3002
       - MIDNIGHT_NETWORK=testnet
-      - MIDNIGHT_PROOF_SERVER_URL=http://proof-server:6300
+      - MCP_URL=http://mcp-server:3000
+      - WALLET_SEED=${MIDNIGHT_SEED}
     volumes:
-      - guardian-storage:/app/storage
-      - guardian-logs:/app/logs
+      - ./cli:/app/cli
+      - ./backend:/app
     networks:
       - sentinel-network
     depends_on:
-      - proof-server
-    restart: unless-stopped
+      mcp-server:
+        condition: service_healthy
+    profiles: ["cli"]
+    command: tail -f /dev/null  # Keep container running for CLI access
 
 networks:
   sentinel-network:
@@ -85,9 +127,16 @@ networks:
 
 volumes:
   proof-data:
-  treasury-storage:
-  treasury-logs:
-  watchdog-storage:
-  watchdog-logs:
-  guardian-storage:
-  guardian-logs:
+    driver: local
+  eliza-data:
+    driver: local
+  admin-storage:
+    driver: local
+
+# Quick Commands:
+# - Basic setup: docker-compose up -d
+# - Multi-account: docker-compose --profile multi-account up -d
+# - CLI tools: docker-compose --profile cli up -d
+# - Full stack: docker-compose --profile multi-account --profile cli up -d
+# - Logs: docker-compose logs -f [service-name]
+# - Reset: docker-compose down -v && docker-compose up -d
