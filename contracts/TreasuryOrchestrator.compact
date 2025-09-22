@@ -7,16 +7,16 @@ pragma language_version 0.17;
 
 import CompactStandardLibrary;
 
-// Contract addresses structure
-export struct ContractRegistry {
+// Smart contract registry structure
+export struct smartContractRegistry {
     watchdogAddress: Bytes<32>,
     guardianAddress: Bytes<32>,
     profilerAddress: Bytes<32>,
     isActive: Bool
 }
 
-// Action request structure
-export struct ActionRequest {
+// Inter-smart contract action request structure
+export struct interSContractActionRequest {
     requestId: Bytes<32>,
     sourceContract: Uint<8>,      // 1=Watchdog, 2=Guardian, 3=Profiler
     actionType: Uint<8>,          // 1=Rebalance, 2=Freeze, 3=Alert, 4=Update
@@ -26,8 +26,8 @@ export struct ActionRequest {
     status: Uint<8>               // 1=Pending, 2=Approved, 3=Rejected, 4=Executed
 }
 
-// Conflict resolution rule
-export struct ConflictRule {
+// Conflict rule resolution structure
+export struct conflictRuleResolution {
     ruleId: Uint<8>,
     condition: Uint<8>,           // Condition type
     priority1Contract: Uint<8>,   // Higher priority contract
@@ -35,8 +35,8 @@ export struct ConflictRule {
     resolution: Uint<8>           // 1=Priority1Wins, 2=Priority2Wins, 3=Merge
 }
 
-// Treasury action log
-export struct ActionLog {
+// Treasury action log structure
+export struct treasuryActionLog {
     actionId: Bytes<32>,
     actionType: Uint<8>,
     initiator: Bytes<32>,
@@ -46,10 +46,10 @@ export struct ActionLog {
 }
 
 // Contract state
-export ledger contractRegistry: ContractRegistry;
-export ledger pendingActions: Map<Bytes<32>, ActionRequest>;
-export ledger conflictRules: Map<Uint<8>, ConflictRule>;
-export ledger actionHistory: Map<Uint<32>, ActionLog>;
+export ledger contractRegistry: smartContractRegistry;
+export ledger pendingActions: Map<Bytes<32>, interSContractActionRequest>;
+export ledger conflictRules: Map<Uint<8>, conflictRuleResolution>;
+export ledger actionHistory: Map<Uint<32>, treasuryActionLog>;
 export ledger actionCounter: Uint<32> = 0;
 
 // Priority queue for actions
@@ -68,7 +68,7 @@ export circuit initialize(
     guardian: Bytes<32>,
     profiler: Bytes<32>
 ): [] {
-    contractRegistry = ContractRegistry {
+    contractRegistry = smartContractRegistry {
         watchdogAddress: disclose(watchdog),
         guardianAddress: disclose(guardian),
         profilerAddress: disclose(profiler),
@@ -82,7 +82,7 @@ export circuit initialize(
 // Initialize default conflict rules (Watchdog > Guardian > Profiler)
 circuit initializeConflictRules(): [] {
     // Rule 1: Watchdog freeze overrides Guardian rebalance
-    conflictRules.insert(1, ConflictRule {
+    conflictRules.insert(1, conflictRuleResolution {
         ruleId: 1,
         condition: 1,  // Freeze vs Rebalance
         priority1Contract: 1,  // Watchdog
@@ -91,7 +91,7 @@ circuit initializeConflictRules(): [] {
     });
     
     // Rule 2: Guardian rebalance overrides Profiler preferences
-    conflictRules.insert(2, ConflictRule {
+    conflictRules.insert(2, conflictRuleResolution {
         ruleId: 2,
         condition: 2,  // Rebalance vs Profile Update
         priority1Contract: 2,  // Guardian
@@ -99,8 +99,8 @@ circuit initializeConflictRules(): [] {
         resolution: 1  // Guardian wins
     });
     
-    // Rule 3: Watchdog alert triggers Guardian pause
-    conflictRules.insert(3, ConflictRule {
+    // Rule 3: Alert conflicts with any action
+    conflictRules.insert(3, conflictRuleResolution {
         ruleId: 3,
         condition: 3,  // Alert vs Any Action
         priority1Contract: 1,  // Watchdog
@@ -109,7 +109,7 @@ circuit initializeConflictRules(): [] {
     });
     
     // Rule 4: Critical actions override all
-    conflictRules.insert(4, ConflictRule {
+    conflictRules.insert(4, conflictRuleResolution {
         ruleId: 4,
         condition: 4,  // Critical priority
         priority1Contract: 1,  // Any with critical
@@ -130,7 +130,7 @@ export circuit submitAction(
         "Unauthorized source contract";
     
     const requestId = generateRequestId(sourceContract, actionType);
-    const request = ActionRequest {
+    const request = interSContractActionRequest {
         requestId: requestId,
         sourceContract: disclose(sourceContract),
         actionType: disclose(actionType),
@@ -161,7 +161,7 @@ export circuit submitAction(
 }
 
 // Check for conflicting actions
-circuit checkConflicts(newRequest: ActionRequest): [] {
+circuit checkConflicts(newRequest: interSContractActionRequest): [] {
     const now = getCurrentTimestamp();
     
     for (requestId in pendingActions.keys()) {
@@ -181,8 +181,8 @@ circuit checkConflicts(newRequest: ActionRequest): [] {
 
 // Detect if two actions conflict
 circuit detectConflict(
-    request1: ActionRequest,
-    request2: ActionRequest
+    request1: interSContractActionRequest,
+    request2: interSContractActionRequest
 ): Bool {
     // Freeze conflicts with rebalance
     if ((request1.actionType == 2 && request2.actionType == 1) ||
@@ -206,8 +206,8 @@ circuit detectConflict(
 
 // Resolve conflict between actions
 circuit resolveConflict(
-    request1: ActionRequest,
-    request2: ActionRequest
+    request1: interSContractActionRequest,
+    request2: interSContractActionRequest
 ): [] {
     // Priority-based resolution
     if (request1.priority < request2.priority) {
@@ -226,8 +226,8 @@ circuit resolveConflict(
 
 // Apply conflict resolution rules
 circuit applyConflictRules(
-    request1: ActionRequest,
-    request2: ActionRequest
+    request1: interSContractActionRequest,
+    request2: interSContractActionRequest
 ): [] {
     // Find applicable rule
     for (ruleId in conflictRules.keys()) {
@@ -331,7 +331,7 @@ circuit processAction(requestId: Bytes<32>): Bool {
 }
 
 // Validate action before execution
-circuit validateAction(action: ActionRequest): Bool {
+circuit validateAction(action: interSContractActionRequest): Bool {
     // Check timeout (actions expire after 1 hour)
     if (getCurrentTimestamp() - action.timestamp > 3600) {
         return false;
@@ -349,35 +349,35 @@ circuit validateAction(action: ActionRequest): Bool {
 }
 
 // Execute rebalance action
-circuit executeRebalance(action: ActionRequest): Bool {
+circuit executeRebalance(action: interSContractActionRequest): Bool {
     // Would call MarketGuardian contract
     // For now, return success
     return true;
 }
 
 // Execute freeze action
-circuit executeFreeze(action: ActionRequest): Bool {
+circuit executeFreeze(action: interSContractActionRequest): Bool {
     // Would call TreasuryWatchdog contract
     // Critical actions always succeed
     return action.priority == 1;
 }
 
 // Execute alert action
-circuit executeAlert(action: ActionRequest): Bool {
+circuit executeAlert(action: interSContractActionRequest): Bool {
     // Alerts always succeed
     return true;
 }
 
 // Execute update action
-circuit executeUpdate(action: ActionRequest): Bool {
+circuit executeUpdate(action: interSContractActionRequest): Bool {
     // Would validate and apply update
     return true;
 }
 
 // Merge conflicting actions
 circuit mergeActions(
-    action1: ActionRequest,
-    action2: ActionRequest
+    action1: interSContractActionRequest,
+    action2: interSContractActionRequest
 ): [] {
     // Create merged action with combined constraints
     // Implementation depends on specific action types
@@ -389,8 +389,8 @@ circuit mergeActions(
 }
 
 // Log action for audit trail
-circuit logAction(action: ActionRequest, success: Bool): [] {
-    const log = ActionLog {
+circuit logAction(action: interSContractActionRequest, success: Bool): [] {
+    const log = treasuryActionLog {
         actionId: action.requestId,
         actionType: action.actionType,
         initiator: getContractAddress(action.sourceContract),

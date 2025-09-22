@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelAI - Risk Tolerance Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .quiz-content {
+            padding: 40px;
+        }
+
+        .question-card {
+            display: none;
+        }
+
+        .question-card.active {
+            display: block;
+        }
+
+        .question-number {
+            background: #667eea;
+            color: white;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 1rem;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #e8f0ff;
+        }
+
+        .option input[type="radio"] {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .results {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .risk-level {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .risk-conservative { color: #28a745; }
+        .risk-balanced { color: #ffc107; }
+        .risk-aggressive { color: #dc3545; }
+
+        .risk-settings {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .setting-value {
+            font-weight: 700;
+            color: #333;
+        }
+
+        .restart-btn {
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .quiz-container {
+                margin: 20px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .quiz-content {
+                padding: 30px 20px;
+            }
+
+            .question {
+                font-size: 1.2rem;
+            }
+
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="header">
+            <h1>🛡️ SentinelAI Risk Assessment</h1>
+            <p>Determine your optimal investment strategy</p>
+        </div>
+
+        <div class="quiz-content">
+            <!-- Progress Bar -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <!-- Question 1 -->
+            <div class="question-card active" data-question="1">
+                <div class="question-number">Question 1 of 7</div>
+                <div class="question">How would you react if your investment lost 20% of its value in a month?</div>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q1" value="1">
+                        I'd be very worried and want to sell everything immediately
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q1" value="3">
+                        I'd be concerned but would wait to see if it recovers
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q1" value="5">
+                        I'd see it as a buying opportunity and invest more
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="question-card" data-question="2">
+                <div class="question-number">Question 2 of 7</div>
+                <div class="question">What's your investment time horizon?</div>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q2" value="1">
+                        Less than 3 years - I need the money soon
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q2" value="3">
+                        3-7 years - Medium-term goals
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q2" value="5">
+                        More than 7 years - Long-term wealth building
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="question-card" data-question="3">
+                <div class="question">How much investment experience do you have?</div>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q3" value="1">
+                        None - I'm new to investing
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q3" value="3">
+                        Some - I've invested in mutual funds or stocks
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q3" value="5">
+                        Extensive - I've traded crypto and derivatives
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="question-card" data-question="4">
+                <div class="question">What's your primary investment goal?</div>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q4" value="1">
+                        Preserve capital - Safety first
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q4" value="3">
+                        Balanced growth and income
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q4" value="5">
+                        Maximum growth - I'm willing to take risks
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="question-card" data-question="5">
+                <div class="question">How would you feel about losing money temporarily for potential long-term gains?</div>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q5" value="1">
+                        Very uncomfortable - I'd rather have steady, smaller gains
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q5" value="3">
+                        Somewhat uncomfortable but I understand volatility
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q5" value="5">
+                        Comfortable - I know markets fluctuate and focus on long-term trends
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="question-card" data-question="6">
+                <div class="question">What's your age group?</div>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q6" value="1">
+                        Under 30 - I have time to recover from losses
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q6" value="3">
+                        30-50 - Balanced approach needed
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q6" value="5">
+                        Over 50 - I need to be more conservative
+                    </label>
+                </div>
+            </div>
+
+            <!-- Question 7 -->
+            <div class="question-card" data-question="7">
+                <div class="question">How do you feel about cryptocurrency volatility?</div>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q7" value="1">
+                        Very concerned - I'd prefer traditional investments
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q7" value="3">
+                        Somewhat concerned but I see the potential
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q7" value="5">
+                        Excited - I embrace the volatility for potential rewards
+                    </label>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="question-card results" data-question="results">
+                <div id="resultsContent">
+                    <!-- Results will be populated by JavaScript -->
+                </div>
+                <button class="btn restart-btn" onclick="restartQuiz()">Take Quiz Again</button>
+            </div>
+
+            <!-- Navigation -->
+            <div class="navigation">
+                <button class="btn btn-outline" id="prevBtn" onclick="previousQuestion()" disabled>Previous</button>
+                <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 1;
+        const totalQuestions = 7;
+        let answers = {};
+
+        // Risk Settings class to match the Python logic
+        class RiskSettings {
+            constructor(riskAppetite, minStablecoin, maxStablecoin, rebalanceCooldown, circuitBreakerEnabled) {
+                this.riskAppetite = riskAppetite;
+                this.minStablecoin = minStablecoin;
+                this.maxStablecoin = maxStablecoin;
+                this.rebalanceCooldown = rebalanceCooldown;
+                this.circuitBreakerEnabled = circuitBreakerEnabled;
+            }
+        }
+
+        // Generate profile function (matching the Python logic)
+        function generateProfile(userScore) {
+            if (userScore < 40) {
+                return new RiskSettings(1, 40, 80, 3600, true);
+            } else if (userScore < 70) {
+                return new RiskSettings(2, 20, 70, 1800, true);
+            } else {
+                return new RiskSettings(3, 10, 50, 900, false);
+            }
+        }
+
+        // Get risk level text
+        function getRiskLevel(settings) {
+            switch(settings.riskAppetite) {
+                case 1: return { text: "Conservative", class: "risk-conservative" };
+                case 2: return { text: "Balanced", class: "risk-balanced" };
+                case 3: return { text: "Aggressive", class: "risk-aggressive" };
+                default: return { text: "Unknown", class: "" };
+            }
+        }
+
+        // Calculate total score
+        function calculateScore() {
+            let totalScore = 0;
+            for (let q = 1; q <= totalQuestions; q++) {
+                totalScore += parseInt(answers[`q${q}`]) || 0;
+            }
+            // Convert to 0-100 scale (max score is 35, so multiply by ~2.86)
+            return Math.round((totalScore / 35) * 100);
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = ((currentQuestion - 1) / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Show question
+        function showQuestion(questionNum) {
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[data-question="${questionNum}"]`).classList.add('active');
+
+            if (questionNum <= totalQuestions) {
+                document.querySelector(`[data-question="${questionNum}"] .question-number`).textContent =
+                    `Question ${questionNum} of ${totalQuestions}`;
+            }
+
+            updateProgress();
+            updateNavigation();
+        }
+
+        // Update navigation buttons
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.disabled = currentQuestion === 1;
+            nextBtn.disabled = !answers[`q${currentQuestion}`];
+
+            if (currentQuestion === totalQuestions) {
+                nextBtn.textContent = 'Get Results';
+            } else {
+                nextBtn.textContent = 'Next';
+            }
+        }
+
+        // Next question
+        function nextQuestion() {
+            if (currentQuestion < totalQuestions) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            } else {
+                showResults();
+            }
+        }
+
+        // Previous question
+        function previousQuestion() {
+            if (currentQuestion > 1) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        }
+
+        // Show results
+        function showResults() {
+            const score = calculateScore();
+            const settings = generateProfile(score);
+            const riskLevel = getRiskLevel(settings);
+
+            const resultsHTML = `
+                <h2>Your Risk Assessment Results</h2>
+                <div class="risk-level ${riskLevel.class}">${riskLevel.text} Investor</div>
+                <p style="margin: 20px 0; color: #666;">Based on your answers, your risk tolerance score is <strong>${score}/100</strong></p>
+
+                <div class="risk-settings">
+                    <h3 style="margin-bottom: 20px; color: #333;">Recommended Risk Settings</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Risk Appetite Level:</span>
+                        <span class="setting-value">${settings.riskAppetite} (${riskLevel.text})</span>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Minimum Stablecoin %:</span>
+                        <span class="setting-value">${settings.minStablecoin}%</span>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Maximum Stablecoin %:</span>
+                        <span class="setting-value">${settings.maxStablecoin}%</span>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Rebalance Cooldown:</span>
+                        <span class="setting-value">${settings.rebalanceCooldown / 3600} hours</span>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Circuit Breaker:</span>
+                        <span class="setting-value">${settings.circuitBreakerEnabled ? 'Enabled' : 'Disabled'}</span>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.9rem; color: #666; margin-top: 20px;">
+                    These settings will be applied to your SentinelAI portfolio to match your risk tolerance.
+                </p>
+            `;
+
+            document.getElementById('resultsContent').innerHTML = resultsHTML;
+            showQuestion('results');
+        }
+
+        // Restart quiz
+        function restartQuiz() {
+            answers = {};
+            currentQuestion = 1;
+
+            // Clear all radio buttons
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+
+            // Clear selected classes
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            showQuestion(1);
+        }
+
+        // Option selection handling
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'radio') {
+                const question = e.target.name;
+                answers[question] = e.target.value;
+
+                // Update selected class
+                document.querySelectorAll(`input[name="${question}"]`).forEach(radio => {
+                    radio.closest('.option').classList.remove('selected');
+                });
+                e.target.closest('.option').classList.add('selected');
+
+                updateNavigation();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showQuestion(1);
+        });
+    </script>
+</body>
+</html>

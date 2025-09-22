@@ -26,11 +26,11 @@ export struct TreasuryAllocation {
     rebalanceCount: Uint<32>      // Total rebalances
 }
 
-// Rebalancing tier structure
-export struct RebalanceTier {
-    triggerThreshold: Int<8>,     // Market condition threshold
+// Risk adjustment trigger structure - handles market conditions and black swan events
+export struct RiskAdjustmentTrigger {
+    triggerThreshold: Int<8>,     // Risk condition threshold (-100 to +100)
     stablecoinTarget: Uint<8>,    // Target stable allocation
-    executionSpeed: Uint<8>       // 1=slow, 2=medium, 3=fast
+    executionSpeed: Uint<8>       // 1=slow, 2=medium, 3=fast (risk adjustment speed)
 }
 
 // Risk profile settings
@@ -46,7 +46,7 @@ export struct RiskSettings {
 export ledger marketDataFeeds: Map<Bytes<32>, MarketData>;  // Asset ID -> Market Data
 export ledger treasuryState: TreasuryAllocation;
 export ledger riskSettings: RiskSettings;
-export ledger rebalanceTiers: Map<Uint<8>, RebalanceTier>;  // Tier level -> Settings
+export ledger riskAdjustmentTriggers: Map<Uint<8>, RiskAdjustmentTrigger>;  // Trigger level -> Risk adjustment settings
 export ledger authorizedOracles: Set<Bytes<32>>;            // Approved data providers
 export ledger rebalanceHistory: Map<Uint<32>, Bytes<32>>;   // Index -> Transaction Hash
 
@@ -99,38 +99,38 @@ export circuit initialize(
         };
     }
     
-    // Initialize rebalance tiers
-    initializeRebalanceTiers();
+    // Initialize risk adjustment triggers
+    initializeRiskAdjustmentTriggers();
     
     // Add deployer as authorized oracle initially
     authorizedOracles.insert(adminIdDisclosed);
 }
 
-// Initialize default rebalance tiers
-circuit initializeRebalanceTiers(): [] {
-    // Tier 1: Mild downturn
-    rebalanceTiers.insert(1, RebalanceTier {
+// Initialize default risk adjustment triggers
+circuit initializeRiskAdjustmentTriggers(): [] {
+    // Trigger 1: Mild risk increase (market downturn)
+    riskAdjustmentTriggers.insert(1, RiskAdjustmentTrigger {
         triggerThreshold: -20,
         stablecoinTarget: 40,
         executionSpeed: 1
     });
     
-    // Tier 2: Moderate downturn
-    rebalanceTiers.insert(2, RebalanceTier {
+    // Trigger 2: Moderate risk increase (significant downturn)
+    riskAdjustmentTriggers.insert(2, RiskAdjustmentTrigger {
         triggerThreshold: -40,
         stablecoinTarget: 60,
         executionSpeed: 2
     });
     
-    // Tier 3: Severe downturn
-    rebalanceTiers.insert(3, RebalanceTier {
+    // Trigger 3: Severe risk increase (crash/black swan)
+    riskAdjustmentTriggers.insert(3, RiskAdjustmentTrigger {
         triggerThreshold: -60,
         stablecoinTarget: 80,
         executionSpeed: 3
     });
     
-    // Tier 4: Bull market
-    rebalanceTiers.insert(4, RebalanceTier {
+    // Trigger 4: Risk reduction (bull market)
+    riskAdjustmentTriggers.insert(4, RiskAdjustmentTrigger {
         triggerThreshold: 40,
         stablecoinTarget: 20,
         executionSpeed: 1
@@ -184,28 +184,28 @@ circuit shouldRebalance(data: MarketData): Bool {
         }
     }
     
-    // Check if trend crosses any tier threshold
-    var tierTriggered = false;
-    for (tier in [1, 2, 3, 4]) {
-        const tierSettings = rebalanceTiers.lookup(tier);
-        if (data.trendDirection <= tierSettings.triggerThreshold) {
-            tierTriggered = true;
+    // Check if trend crosses any risk adjustment trigger threshold
+    var triggerActivated = false;
+    for (trigger in [1, 2, 3, 4]) {
+        const triggerSettings = riskAdjustmentTriggers.lookup(trigger);
+        if (data.trendDirection <= triggerSettings.triggerThreshold) {
+            triggerActivated = true;
         }
     }
     
-    return tierTriggered;
+    return triggerActivated;
 }
 
-// Trigger rebalancing based on market conditions
+// Trigger risk adjustment based on market conditions or black swan events
 circuit triggerRebalance(data: MarketData): [] {
-    // Determine target allocation based on market trend
+    // Determine target allocation based on risk conditions
     var targetStablecoin: Uint<8> = treasuryState.stablecoinPercent;
     
-    // Find appropriate tier
-    for (tier in [3, 2, 1, 4]) {  // Check from most severe to least
-        const tierSettings = rebalanceTiers.lookup(tier);
-        if (data.trendDirection <= tierSettings.triggerThreshold) {
-            targetStablecoin = tierSettings.stablecoinTarget;
+    // Find appropriate risk adjustment trigger
+    for (trigger in [3, 2, 1, 4]) {  // Check from most severe to least
+        const triggerSettings = riskAdjustmentTriggers.lookup(trigger);
+        if (data.trendDirection <= triggerSettings.triggerThreshold) {
+            targetStablecoin = triggerSettings.stablecoinTarget;
             break;
         }
     }
@@ -218,11 +218,11 @@ circuit triggerRebalance(data: MarketData): [] {
         targetStablecoin = riskSettings.maxStablecoin;
     }
     
-    // Execute tiered rebalancing (gradual, not all at once)
+    // Execute triggered risk adjustment (gradual, not all at once)
     executeRebalance(targetStablecoin, data.volatilityIndex);
 }
 
-// Execute the rebalancing
+// Execute the risk adjustment rebalancing
 circuit executeRebalance(
     targetStablecoin: Uint<8>,
     volatility: Uint<8>

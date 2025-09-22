@@ -40,8 +40,8 @@ export struct ProfileChangeAlert {
     requiresReview: Bool
 }
 
-// Quiz response structure
-export struct QuizResponse {
+// Risk quiz response structure
+export struct riskQuizResponse {
     questionId: Uint<8>,
     answer: Uint<8>,
     weight: Uint<8>                // Question importance
@@ -51,7 +51,7 @@ export struct QuizResponse {
 export ledger userProfiles: Map<Bytes<32>, UserRiskProfile>;
 export ledger allocations: Map<Bytes<32>, AllocationRecommendation>;
 export ledger profileAlerts: Map<Bytes<32>, ProfileChangeAlert>;
-export ledger quizResponses: Map<Bytes<32>, Map<Uint<8>, QuizResponse>>;
+export ledger quizResponses: Map<Bytes<32>, Map<Uint<8>, riskQuizResponse>>;
 
 // Configuration
 export ledger maxAgeForHighRisk: Uint<8> = 55;  // Max age for high risk tolerance
@@ -106,7 +106,7 @@ export circuit createProfile(
     
     // Store quiz responses for audit
     for (questionId in responses.keys()) {
-        const response = QuizResponse {
+        const response = riskQuizResponse {
             questionId: questionId,
             answer: responses.lookup(questionId),
             weight: getQuestionWeight(questionId)
@@ -426,7 +426,7 @@ circuit getQuestionWeight(questionId: Uint<8>): Uint<8> {
     }
 }
 
-circuit storeQuizResponse(userId: Bytes<32>, questionId: Uint<8>, response: QuizResponse): [] {
+circuit storeQuizResponse(userId: Bytes<32>, questionId: Uint<8>, response: riskQuizResponse): [] {
     // Simplified storage - in production would use nested maps properly
     // For now, just note that response is stored
 }
