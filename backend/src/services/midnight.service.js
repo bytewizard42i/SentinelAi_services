@@ -1,7 +1,9 @@
 // Midnight Network Integration Service
 // Handles all blockchain interactions with Midnight
 
-import { Mesh, MeshWallet, CompactRuntime } from '@midnight-ntwrk/mesh';
+import { Wallet, createWalletRoot } from '@midnight-ntwrk/wallet';
+import { NetworkId } from '@midnight-ntwrk/midnight-js-types';
+import { Ledger } from '@midnight-ntwrk/ledger';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,8 +14,9 @@ const __dirname = path.dirname(__filename);
 
 export class MidnightService {
   constructor() {
-    this.mesh = null;
     this.wallet = null;
+    this.ledger = null;
+    this.walletRoot = null;
     this.contracts = {
       watchdog: null,
       guardian: null,
@@ -22,27 +25,31 @@ export class MidnightService {
     };
     this.connected = false;
     this.networkConfig = {
-      nodeUrl: process.env.MIDNIGHT_NODE_URL || 'http://localhost:8545',
-      proofServerUrl: process.env.MIDNIGHT_PROOF_SERVER || 'http://localhost:6300',
-      networkId: process.env.MIDNIGHT_NETWORK_ID || 'testnet'
+      nodeUrl: process.env.MIDNIGHT_NODE_URL || 'https://node.testnet.midnight.network',
+      indexerUrl: process.env.MIDNIGHT_INDEXER_URL || 'https://indexer.testnet.midnight.network',
+      proofServerUrl: process.env.MIDNIGHT_PROOF_SERVER_URL || 'http://localhost:6300',
+      networkId: process.env.MIDNIGHT_NETWORK || 'testnet'
     };
+    this.agentId = process.env.AGENT_ID || 'sentinel_agent';
+    this.storagePath = `./storage/${this.agentId}`;
   }
 
   async connect() {
     try {
-      // Initialize Mesh connection
-      this.mesh = await Mesh.create({
+      // Create storage directories
+      await this.ensureStorageDirectories();
+      
+      // Initialize ledger connection
+      this.ledger = await Ledger.create({
+        indexerUrl: this.networkConfig.indexerUrl,
         nodeUrl: this.networkConfig.nodeUrl,
         proofServerUrl: this.networkConfig.proofServerUrl,
-        networkId: this.networkConfig.networkId
+        network: this.networkConfig.networkId === 'testnet' ? NetworkId.TestNet : NetworkId.MainNet
       });
-
-      // Initialize wallet
-      const privateKey = process.env.MIDNIGHT_PRIVATE_KEY || await this.generatePrivateKey();
-      this.wallet = await MeshWallet.fromPrivateKey(privateKey);
       
-      // Connect wallet to Mesh
-      await this.mesh.connectWallet(this.wallet);
+      // Initialize or restore wallet
+      const seed = process.env.MIDNIGHT_SEED || await this.generateSeed();
+      await this.initializeWallet(seed);
       
       this.connected = true;
       logger.info('Successfully connected to Midnight Network');

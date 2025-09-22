@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Midnight Proof Server v4
+  proof-server:
+    image: midnightnetwork/proof-server:4.0.0
+    container_name: sentinel-proof-server
+    ports:
+      - "6300:6300"
+    environment:
+      - PROOF_SERVER_PORT=6300
+      - NETWORK=testnet
+    volumes:
+      - proof-data:/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+
+  # Main Treasury Wallet (Port 3000)
+  treasury-wallet:
+    build: ./backend
+    container_name: sentinel-treasury-wallet
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - AGENT_ID=treasury_main
+      - PORT=3000
+      - MIDNIGHT_NETWORK=testnet
+      - MIDNIGHT_PROOF_SERVER_URL=http://proof-server:6300
+    volumes:
+      - treasury-storage:/app/storage
+      - treasury-logs:/app/logs
+    networks:
+      - sentinel-network
+    depends_on:
+      - proof-server
+    restart: unless-stopped
+
+  # Watchdog Service Wallet (Port 3001)
+  watchdog-wallet:
+    build: ./backend
+    container_name: sentinel-watchdog-wallet
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - AGENT_ID=watchdog_agent
+      - PORT=3001
+      - MIDNIGHT_NETWORK=testnet
+      - MIDNIGHT_PROOF_SERVER_URL=http://proof-server:6300
+    volumes:
+      - watchdog-storage:/app/storage
+      - watchdog-logs:/app/logs
+    networks:
+      - sentinel-network
+    depends_on:
+      - proof-server
+    restart: unless-stopped
+
+  # Guardian Service Wallet (Port 3002)
+  guardian-wallet:
+    build: ./backend
+    container_name: sentinel-guardian-wallet
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - AGENT_ID=guardian_agent
+      - PORT=3002
+      - MIDNIGHT_NETWORK=testnet
+      - MIDNIGHT_PROOF_SERVER_URL=http://proof-server:6300
+    volumes:
+      - guardian-storage:/app/storage
+      - guardian-logs:/app/logs
+    networks:
+      - sentinel-network
+    depends_on:
+      - proof-server
+    restart: unless-stopped
+
+networks:
+  sentinel-network:
+    driver: bridge
+
+volumes:
+  proof-data:
+  treasury-storage:
+  treasury-logs:
+  watchdog-storage:
+  watchdog-logs:
+  guardian-storage:
+  guardian-logs:
