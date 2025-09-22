@@ -40,10 +40,10 @@ const orchestratorService = new OrchestratorService(
 const marketDataService = new MarketDataService(guardianService);
 
 // Routes
-app.use('/api/watchdog', watchdogRoutes);
-app.use('/api/guardian', guardianRoutes);
-app.use('/api/profiler', profilerRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/watchdog', watchdogRoutes(watchdogService));
+app.use('/api/guardian', guardianRoutes(guardianService));
+app.use('/api/profiler', profilerRoutes(profilerService));
+app.use('/api/dashboard', dashboardRoutes());
 
 // Health check
 app.get('/health', (req, res) => {

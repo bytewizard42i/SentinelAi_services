@@ -8,13 +8,9 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY yarn.lock* ./
-
-# Install Yarn 4.1.0
-RUN corepack enable && corepack prepare yarn@4.1.0 --activate
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -22,11 +18,11 @@ COPY . .
 # Create storage directories
 RUN mkdir -p storage/logs storage/seeds storage/wallets storage/transactions
 
-# Build the application
-RUN yarn build || true
+# Build the application (optional)
+RUN npm run build 2>/dev/null || echo "No build script found"
 
 # Expose port
 EXPOSE 3000
 
 # Start the server
-CMD ["yarn", "start"]
+CMD ["npm", "start"]

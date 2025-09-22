@@ -2,7 +2,7 @@
 // Implements behavioral anomaly detection for safety from nefarious actions
 
 import EventEmitter from 'events';
-import IsolationForest from 'isolation-forest';
+// import IsolationForest from 'isolation-forest'; // Disabled for demo
 import { logger } from '../utils/logger.js';
 
 export class WatchdogService extends EventEmitter {
@@ -19,12 +19,20 @@ export class WatchdogService extends EventEmitter {
 
   async initialize() {
     try {
-      // Initialize anomaly detection model
-      this.anomalyDetector = new IsolationForest({
-        numTrees: 100,
-        sampleSize: 256,
-        dimensions: 6 // transaction size, time, frequency, etc.
-      });
+      // Initialize anomaly detection model (disabled for demo)
+      // this.anomalyDetector = new IsolationForest({
+      //   numTrees: 100,
+      //   sampleSize: 256,
+      //   dimensions: 6 // transaction size, time, frequency, etc.
+      // });
+      
+      // Use simple mock anomaly detector for demo
+      this.anomalyDetector = {
+        fit: (data) => logger.debug('Mock fit called'),
+        train: (data) => logger.debug('Mock train called with', data.length, 'samples'),
+        predict: (data) => Math.random() > 0.95 ? 1 : 0, // 5% anomaly rate
+        score: (data) => Math.random() * 100
+      };
 
       // Load existing profiles from contract
       await this.loadProfiles();
@@ -328,6 +336,10 @@ export class WatchdogService extends EventEmitter {
     return challenge;
   }
 
+  isActive() {
+    return this.active;
+  }
+
   async trainModel() {
     try {
       const trainingData = [];
@@ -390,10 +402,6 @@ export class WatchdogService extends EventEmitter {
     }
   }
 
-  isActive() {
-    return this.active;
-  }
-
   getStats() {
     return {
       totalProfiles: this.behaviorProfiles.size,
@@ -401,5 +409,9 @@ export class WatchdogService extends EventEmitter {
       criticalAlerts: this.activeAlerts.filter(a => a.severity === 'critical').length,
       frozenAccounts: Array.from(this.behaviorProfiles.values()).filter(p => p.frozen).length
     };
+  }
+
+  getActiveAlerts() {
+    return [...this.activeAlerts];
   }
 }

@@ -481,6 +481,10 @@ export class ProfilerService extends EventEmitter {
     return profile;
   }
 
+  isActive() {
+    return this.active;
+  }
+
   getProfileAlerts(reviewed = false) {
     const alerts = [];
     this.profileAlerts.forEach(alert => {

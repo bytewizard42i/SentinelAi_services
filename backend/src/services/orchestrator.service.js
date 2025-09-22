@@ -337,10 +337,12 @@ export class OrchestratorService extends EventEmitter {
     if (this.processingInterval) {
       clearInterval(this.processingInterval);
       this.processingInterval = null;
+      logger.info('Orchestrator processing stopped');
     }
-    
-    this.isProcessing = false;
-    logger.info('Orchestrator processing stopped');
+  }
+
+  isActive() {
+    return this.active;
   }
 
   async processActions() {

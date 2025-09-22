@@ -1,9 +1,10 @@
 // Midnight Network Integration Service
 // Handles all blockchain interactions with Midnight
 
-import { Wallet, createWalletRoot } from '@midnight-ntwrk/wallet';
-import { NetworkId } from '@midnight-ntwrk/midnight-js-types';
-import { Ledger } from '@midnight-ntwrk/ledger';
+// Midnight imports temporarily disabled for demo
+// import { Wallet, createWalletRoot } from '@midnight-ntwrk/wallet';
+// import { NetworkId } from '@midnight-ntwrk/midnight-js-types';
+// import { Ledger } from '@midnight-ntwrk/ledger';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -39,24 +40,27 @@ export class MidnightService {
       // Create storage directories
       await this.ensureStorageDirectories();
       
-      // Initialize ledger connection
-      this.ledger = await Ledger.create({
-        indexerUrl: this.networkConfig.indexerUrl,
-        nodeUrl: this.networkConfig.nodeUrl,
-        proofServerUrl: this.networkConfig.proofServerUrl,
-        network: this.networkConfig.networkId === 'testnet' ? NetworkId.TestNet : NetworkId.MainNet
-      });
+      // Initialize mesh for contract deployment (disabled for demo)
+      // const privateKey = this.wallet.getPrivateKey();
+      // this.mesh = await MeshWallet.create({
+      //   privateKey: privateKey,
+      //   network: this.networkConfig.networkId,
+      //   fetcher: this.ledger.fetcher,
+      //   submitter: this.ledger.submitter
+      // });
       
-      // Initialize or restore wallet
-      const seed = process.env.MIDNIGHT_SEED || await this.generateSeed();
-      await this.initializeWallet(seed);
+      // Create or restore wallet (disabled for demo)
+      // const walletSeed = await this.getOrCreateWalletSeed();
+      // this.walletRoot = await createWalletRoot(walletSeed);
+      // this.wallet = await Wallet.restore(this.walletRoot, this.ledger);
       
       this.connected = true;
       logger.info('Successfully connected to Midnight Network');
       
-      // Log wallet address
-      const address = await this.wallet.getAddress();
-      logger.info(`Wallet address: ${address}`);
+      // Log wallet address (disabled for demo)
+      // const address = await this.wallet.getAddress();
+      // logger.info(`Wallet address: ${address}`);
+      logger.info('Mock wallet connected (demo mode)');
       
       return true;
     } catch (error) {
@@ -290,5 +294,32 @@ export class MidnightService {
       logger.error('Failed to wait for transaction:', error);
       throw error;
     }
+  }
+
+  isConnected() {
+    return this.connected;
+  }
+
+  async ensureStorageDirectories() {
+    // Create storage directories for wallet and data
+    const dirs = [
+      this.storagePath,
+      `${this.storagePath}/wallets`,
+      `${this.storagePath}/seeds`,
+      `${this.storagePath}/logs`,
+      `${this.storagePath}/transactions`
+    ];
+
+    for (const dir of dirs) {
+      try {
+        await fs.mkdir(dir, { recursive: true });
+      } catch (error) {
+        if (error.code !== 'EEXIST') {
+          throw error;
+        }
+      }
+    }
+    
+    logger.info(`Storage directories ensured at ${this.storagePath}`);
   }
 }

@@ -402,6 +402,10 @@ export class GuardianService extends EventEmitter {
     return { ...this.treasuryAllocation };
   }
 
+  isActive() {
+    return this.active;
+  }
+
   getMarketData(asset) {
     return this.marketData.get(asset);
   }
