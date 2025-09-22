@@ -1,0 +1,468 @@
+// SentinelAI Services - Treasury Orchestrator Contract
+// Inter-contract communication and conflict resolution
+// Copyright (C) 2025 SentinelAI Services
+// SPDX-License-Identifier: Apache-2.0
+
+pragma language_version 0.15;
+
+import CompactStandardLibrary;
+
+// Contract addresses structure
+export struct ContractRegistry {
+    watchdogAddress: Bytes<32>,
+    guardianAddress: Bytes<32>,
+    profilerAddress: Bytes<32>,
+    isActive: Bool
+}
+
+// Action request structure
+export struct ActionRequest {
+    requestId: Bytes<32>,
+    sourceContract: Uint<8>,      // 1=Watchdog, 2=Guardian, 3=Profiler
+    actionType: Uint<8>,          // 1=Rebalance, 2=Freeze, 3=Alert, 4=Update
+    priority: Uint<8>,            // 1=Critical, 2=High, 3=Medium, 4=Low
+    payload: Opaque<"bytes">,
+    timestamp: Uint<64>,
+    status: Uint<8>               // 1=Pending, 2=Approved, 3=Rejected, 4=Executed
+}
+
+// Conflict resolution rule
+export struct ConflictRule {
+    ruleId: Uint<8>,
+    condition: Uint<8>,           // Condition type
+    priority1Contract: Uint<8>,   // Higher priority contract
+    priority2Contract: Uint<8>,   // Lower priority contract
+    resolution: Uint<8>           // 1=Priority1Wins, 2=Priority2Wins, 3=Merge
+}
+
+// Treasury action log
+export struct ActionLog {
+    actionId: Bytes<32>,
+    actionType: Uint<8>,
+    initiator: Bytes<32>,
+    result: Bool,                 // Success/Failure
+    timestamp: Uint<64>,
+    details: Opaque<"string">
+}
+
+// Contract state
+export ledger contractRegistry: ContractRegistry;
+export ledger pendingActions: Map<Bytes<32>, ActionRequest>;
+export ledger conflictRules: Map<Uint<8>, ConflictRule>;
+export ledger actionHistory: Map<Uint<32>, ActionLog>;
+export ledger actionCounter: Uint<32> = 0;
+
+// Priority queue for actions
+export ledger criticalQueue: Set<Bytes<32>>;
+export ledger highQueue: Set<Bytes<32>>;
+export ledger mediumQueue: Set<Bytes<32>>;
+export ledger lowQueue: Set<Bytes<32>>;
+
+// Configuration
+export ledger maxPendingActions: Uint<8> = 10;
+export ledger conflictWindow: Uint<64> = 300;  // 5 minutes to detect conflicts
+
+// Initialize orchestrator with contract addresses
+export circuit initialize(
+    watchdog: Bytes<32>,
+    guardian: Bytes<32>,
+    profiler: Bytes<32>
+): [] {
+    contractRegistry = ContractRegistry {
+        watchdogAddress: disclose(watchdog),
+        guardianAddress: disclose(guardian),
+        profilerAddress: disclose(profiler),
+        isActive: true
+    };
+    
+    // Initialize conflict resolution rules
+    initializeConflictRules();
+}
+
+// Initialize default conflict rules (Watchdog > Guardian > Profiler)
+circuit initializeConflictRules(): [] {
+    // Rule 1: Watchdog freeze overrides Guardian rebalance
+    conflictRules.insert(1, ConflictRule {
+        ruleId: 1,
+        condition: 1,  // Freeze vs Rebalance
+        priority1Contract: 1,  // Watchdog
+        priority2Contract: 2,  // Guardian
+        resolution: 1  // Watchdog wins
+    });
+    
+    // Rule 2: Guardian rebalance overrides Profiler preferences
+    conflictRules.insert(2, ConflictRule {
+        ruleId: 2,
+        condition: 2,  // Rebalance vs Profile Update
+        priority1Contract: 2,  // Guardian
+        priority2Contract: 3,  // Profiler
+        resolution: 1  // Guardian wins
+    });
+    
+    // Rule 3: Watchdog alert triggers Guardian pause
+    conflictRules.insert(3, ConflictRule {
+        ruleId: 3,
+        condition: 3,  // Alert vs Any Action
+        priority1Contract: 1,  // Watchdog
+        priority2Contract: 2,  // Guardian
+        resolution: 3  // Merge - pause and alert
+    });
+    
+    // Rule 4: Critical actions override all
+    conflictRules.insert(4, ConflictRule {
+        ruleId: 4,
+        condition: 4,  // Critical priority
+        priority1Contract: 1,  // Any with critical
+        priority2Contract: 0,  // Any other
+        resolution: 1  // Critical wins
+    });
+}
+
+// Submit action request from contract
+export circuit submitAction(
+    sourceContract: Uint<8>,
+    actionType: Uint<8>,
+    priority: Uint<8>,
+    payload: Opaque<"bytes">
+): Bytes<32> {
+    // Verify source is registered contract
+    assert verifySource(sourceContract)
+        "Unauthorized source contract";
+    
+    const requestId = generateRequestId(sourceContract, actionType);
+    const request = ActionRequest {
+        requestId: requestId,
+        sourceContract: disclose(sourceContract),
+        actionType: disclose(actionType),
+        priority: disclose(priority),
+        payload: payload,
+        timestamp: getCurrentTimestamp(),
+        status: 1  // Pending
+    };
+    
+    pendingActions.insert(requestId, request);
+    
+    // Add to appropriate priority queue
+    const priorityDisclosed = disclose(priority);
+    if (priorityDisclosed == 1) {
+        criticalQueue.insert(requestId);
+    } else if (priorityDisclosed == 2) {
+        highQueue.insert(requestId);
+    } else if (priorityDisclosed == 3) {
+        mediumQueue.insert(requestId);
+    } else {
+        lowQueue.insert(requestId);
+    }
+    
+    // Check for conflicts
+    checkConflicts(request);
+    
+    return requestId;
+}
+
+// Check for conflicting actions
+circuit checkConflicts(newRequest: ActionRequest): [] {
+    const now = getCurrentTimestamp();
+    
+    for (requestId in pendingActions.keys()) {
+        const existingRequest = pendingActions.lookup(requestId);
+        
+        // Skip if outside conflict window
+        if (now - existingRequest.timestamp > conflictWindow) {
+            continue;
+        }
+        
+        // Check if actions conflict
+        if (detectConflict(newRequest, existingRequest)) {
+            resolveConflict(newRequest, existingRequest);
+        }
+    }
+}
+
+// Detect if two actions conflict
+circuit detectConflict(
+    request1: ActionRequest,
+    request2: ActionRequest
+): Bool {
+    // Freeze conflicts with rebalance
+    if ((request1.actionType == 2 && request2.actionType == 1) ||
+        (request1.actionType == 1 && request2.actionType == 2)) {
+        return true;
+    }
+    
+    // Multiple rebalances conflict
+    if (request1.actionType == 1 && request2.actionType == 1) {
+        return true;
+    }
+    
+    // Alert conflicts with any execution
+    if ((request1.actionType == 3 && request2.status == 4) ||
+        (request2.actionType == 3 && request1.status == 4)) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Resolve conflict between actions
+circuit resolveConflict(
+    request1: ActionRequest,
+    request2: ActionRequest
+): [] {
+    // Priority-based resolution
+    if (request1.priority < request2.priority) {
+        // request1 has higher priority (lower number)
+        request2.status = 3;  // Reject request2
+        pendingActions.insert(request2.requestId, request2);
+    } else if (request2.priority < request1.priority) {
+        // request2 has higher priority
+        request1.status = 3;  // Reject request1
+        pendingActions.insert(request1.requestId, request1);
+    } else {
+        // Same priority - use contract hierarchy
+        applyConflictRules(request1, request2);
+    }
+}
+
+// Apply conflict resolution rules
+circuit applyConflictRules(
+    request1: ActionRequest,
+    request2: ActionRequest
+): [] {
+    // Find applicable rule
+    for (ruleId in conflictRules.keys()) {
+        const rule = conflictRules.lookup(ruleId);
+        
+        if ((rule.priority1Contract == request1.sourceContract &&
+             rule.priority2Contract == request2.sourceContract) ||
+            (rule.priority1Contract == request2.sourceContract &&
+             rule.priority2Contract == request1.sourceContract)) {
+            
+            // Apply resolution
+            if (rule.resolution == 1) {
+                // Priority 1 wins
+                if (rule.priority1Contract == request1.sourceContract) {
+                    request2.status = 3;  // Reject
+                    pendingActions.insert(request2.requestId, request2);
+                } else {
+                    request1.status = 3;  // Reject
+                    pendingActions.insert(request1.requestId, request1);
+                }
+            } else if (rule.resolution == 3) {
+                // Merge - both proceed with modifications
+                // Implementation depends on specific action types
+                mergeActions(request1, request2);
+            }
+            
+            return;
+        }
+    }
+}
+
+// Process pending actions in priority order
+export circuit processActions(): Uint<8> {
+    var processed: Uint<8> = 0;
+    
+    // Process critical queue first
+    for (requestId in criticalQueue) {
+        if (processAction(requestId)) {
+            processed = processed + 1;
+            criticalQueue.remove(requestId);
+        }
+        if (processed >= 5) {  // Batch limit
+            return processed;
+        }
+    }
+    
+    // Then high priority
+    for (requestId in highQueue) {
+        if (processAction(requestId)) {
+            processed = processed + 1;
+            highQueue.remove(requestId);
+        }
+        if (processed >= 5) {
+            return processed;
+        }
+    }
+    
+    // Then medium and low
+    // ... similar processing
+    
+    return processed;
+}
+
+// Process individual action
+circuit processAction(requestId: Bytes<32>): Bool {
+    assert pendingActions.member(requestId)
+        "Action not found";
+    
+    var action = pendingActions.lookup(requestId);
+    
+    if (action.status != 1) {  // Not pending
+        return false;
+    }
+    
+    // Validate action still valid
+    if (!validateAction(action)) {
+        action.status = 3;  // Reject
+        pendingActions.insert(requestId, action);
+        return true;
+    }
+    
+    // Execute based on type
+    var success = false;
+    if (action.actionType == 1) {  // Rebalance
+        success = executeRebalance(action);
+    } else if (action.actionType == 2) {  // Freeze
+        success = executeFreeze(action);
+    } else if (action.actionType == 3) {  // Alert
+        success = executeAlert(action);
+    } else if (action.actionType == 4) {  // Update
+        success = executeUpdate(action);
+    }
+    
+    // Update status and log
+    action.status = success ? 4 : 3;  // Executed or Rejected
+    pendingActions.insert(requestId, action);
+    
+    logAction(action, success);
+    
+    return true;
+}
+
+// Validate action before execution
+circuit validateAction(action: ActionRequest): Bool {
+    // Check timeout (actions expire after 1 hour)
+    if (getCurrentTimestamp() - action.timestamp > 3600) {
+        return false;
+    }
+    
+    // Check source contract is still active
+    if (!contractRegistry.isActive) {
+        return false;
+    }
+    
+    // Check no newer conflicting action
+    // ... additional validation
+    
+    return true;
+}
+
+// Execute rebalance action
+circuit executeRebalance(action: ActionRequest): Bool {
+    // Would call MarketGuardian contract
+    // For now, return success
+    return true;
+}
+
+// Execute freeze action
+circuit executeFreeze(action: ActionRequest): Bool {
+    // Would call TreasuryWatchdog contract
+    // Critical actions always succeed
+    return action.priority == 1;
+}
+
+// Execute alert action
+circuit executeAlert(action: ActionRequest): Bool {
+    // Alerts always succeed
+    return true;
+}
+
+// Execute update action
+circuit executeUpdate(action: ActionRequest): Bool {
+    // Would validate and apply update
+    return true;
+}
+
+// Merge conflicting actions
+circuit mergeActions(
+    action1: ActionRequest,
+    action2: ActionRequest
+): [] {
+    // Create merged action with combined constraints
+    // Implementation depends on specific action types
+    action1.status = 2;  // Approved with modifications
+    action2.status = 2;  // Approved with modifications
+    
+    pendingActions.insert(action1.requestId, action1);
+    pendingActions.insert(action2.requestId, action2);
+}
+
+// Log action for audit trail
+circuit logAction(action: ActionRequest, success: Bool): [] {
+    const log = ActionLog {
+        actionId: action.requestId,
+        actionType: action.actionType,
+        initiator: getContractAddress(action.sourceContract),
+        result: success,
+        timestamp: getCurrentTimestamp(),
+        details: opaque("Action processed")
+    };
+    
+    actionCounter = actionCounter + 1;
+    actionHistory.insert(actionCounter, log);
+}
+
+// Query functions
+export circuit getActionStatus(requestId: Bytes<32>): Uint<8> {
+    const requestIdDisclosed = disclose(requestId);
+    assert pendingActions.member(requestIdDisclosed)
+        "Action not found";
+    
+    const action = pendingActions.lookup(requestIdDisclosed);
+    return action.status;
+}
+
+export circuit getPendingActionCount(): Uint<8> {
+    return pendingActions.size();
+}
+
+export circuit getQueueDepth(priority: Uint<8>): Uint<8> {
+    const priorityDisclosed = disclose(priority);
+    if (priorityDisclosed == 1) {
+        return criticalQueue.size();
+    } else if (priorityDisclosed == 2) {
+        return highQueue.size();
+    } else if (priorityDisclosed == 3) {
+        return mediumQueue.size();
+    } else {
+        return lowQueue.size();
+    }
+}
+
+// Admin functions
+export circuit pauseOrchestrator(): [] {
+    // Would check admin permissions
+    contractRegistry.isActive = false;
+}
+
+export circuit resumeOrchestrator(): [] {
+    // Would check admin permissions
+    contractRegistry.isActive = true;
+}
+
+// Helper functions
+circuit verifySource(sourceContract: Uint<8>): Bool {
+    // Verify the calling contract is registered
+    return sourceContract >= 1 && sourceContract <= 3;
+}
+
+circuit generateRequestId(source: Uint<8>, actionType: Uint<8>): Bytes<32> {
+    // Generate unique request ID
+    // Simplified - would use proper hash
+    return own_public_key().bytes;
+}
+
+circuit getContractAddress(contractType: Uint<8>): Bytes<32> {
+    if (contractType == 1) {
+        return contractRegistry.watchdogAddress;
+    } else if (contractType == 2) {
+        return contractRegistry.guardianAddress;
+    } else {
+        return contractRegistry.profilerAddress;
+    }
+}
+
+circuit getCurrentTimestamp(): Uint<64> {
+    return 1735000000;  // Placeholder
+}

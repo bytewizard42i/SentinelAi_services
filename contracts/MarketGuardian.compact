@@ -1,0 +1,369 @@
+// SentinelAI Services - Market Guardian Contract
+// Priority 2: Safety of Funds through Market Monitoring
+// Copyright (C) 2025 SentinelAI Services
+// SPDX-License-Identifier: Apache-2.0
+
+pragma language_version 0.15;
+
+import CompactStandardLibrary;
+
+// Market conditions structure
+export struct MarketData {
+    priceUSD: Uint<64>,           // Price in cents to avoid decimals
+    volume24h: Uint<64>,          // 24h volume in USD
+    volatilityIndex: Uint<8>,     // 0-100 scale
+    trendDirection: Int<8>,       // -100 to +100 (-ve = bearish, +ve = bullish)
+    lastUpdate: Uint<64>,         // Timestamp
+    confidence: Uint<8>           // 0-100 confidence in data
+}
+
+// Treasury allocation structure
+export struct TreasuryAllocation {
+    totalValue: Uint<64>,         // Total USD value
+    stablecoinPercent: Uint<8>,   // 0-100
+    riskAssetPercent: Uint<8>,    // 0-100
+    lastRebalance: Uint<64>,      // Timestamp
+    rebalanceCount: Uint<32>      // Total rebalances
+}
+
+// Rebalancing tier structure
+export struct RebalanceTier {
+    triggerThreshold: Int<8>,     // Market condition threshold
+    stablecoinTarget: Uint<8>,    // Target stable allocation
+    executionSpeed: Uint<8>       // 1=slow, 2=medium, 3=fast
+}
+
+// Risk profile settings
+export struct RiskSettings {
+    riskAppetite: Uint<8>,        // 1=conservative, 2=balanced, 3=aggressive
+    minStablecoin: Uint<8>,       // Minimum stablecoin %
+    maxStablecoin: Uint<8>,       // Maximum stablecoin %
+    rebalanceCooldown: Uint<64>,  // Minimum time between rebalances
+    circuitBreakerEnabled: Bool   // Flash crash protection
+}
+
+// Contract state
+export ledger marketDataFeeds: Map<Bytes<32>, MarketData>;  // Asset ID -> Market Data
+export ledger treasuryState: TreasuryAllocation;
+export ledger riskSettings: RiskSettings;
+export ledger rebalanceTiers: Map<Uint<8>, RebalanceTier>;  // Tier level -> Settings
+export ledger authorizedOracles: Set<Bytes<32>>;            // Approved data providers
+export ledger rebalanceHistory: Map<Uint<32>, Bytes<32>>;   // Index -> Transaction Hash
+
+// Watch list for monitored assets
+export ledger watchedAssets: Set<Bytes<32>>;
+export ledger assetWeights: Map<Bytes<32>, Uint<8>>;       // Asset -> Weight in portfolio
+
+// Initialize market guardian with default settings
+export circuit initialize(
+    initialTreasury: Uint<64>,
+    riskLevel: Uint<8>  // 1=conservative, 2=balanced, 3=aggressive
+): [] {
+    const adminId = own_public_key().bytes;
+    const adminIdDisclosed = disclose(adminId);
+    
+    // Set initial treasury state
+    treasuryState = TreasuryAllocation {
+        totalValue: disclose(initialTreasury),
+        stablecoinPercent: 30,  // Start with 30% stablecoins
+        riskAssetPercent: 70,
+        lastRebalance: getCurrentTimestamp(),
+        rebalanceCount: 0
+    };
+    
+    // Configure risk settings based on level
+    const riskLevelDisclosed = disclose(riskLevel);
+    if (riskLevelDisclosed == 1) {  // Conservative
+        riskSettings = RiskSettings {
+            riskAppetite: 1,
+            minStablecoin: 40,
+            maxStablecoin: 80,
+            rebalanceCooldown: 3600,  // 1 hour
+            circuitBreakerEnabled: true
+        };
+    } else if (riskLevelDisclosed == 3) {  // Aggressive
+        riskSettings = RiskSettings {
+            riskAppetite: 3,
+            minStablecoin: 10,
+            maxStablecoin: 50,
+            rebalanceCooldown: 900,   // 15 minutes
+            circuitBreakerEnabled: false
+        };
+    } else {  // Balanced (default)
+        riskSettings = RiskSettings {
+            riskAppetite: 2,
+            minStablecoin: 20,
+            maxStablecoin: 70,
+            rebalanceCooldown: 1800,  // 30 minutes
+            circuitBreakerEnabled: true
+        };
+    }
+    
+    // Initialize rebalance tiers
+    initializeRebalanceTiers();
+    
+    // Add deployer as authorized oracle initially
+    authorizedOracles.insert(adminIdDisclosed);
+}
+
+// Initialize default rebalance tiers
+circuit initializeRebalanceTiers(): [] {
+    // Tier 1: Mild downturn
+    rebalanceTiers.insert(1, RebalanceTier {
+        triggerThreshold: -20,
+        stablecoinTarget: 40,
+        executionSpeed: 1
+    });
+    
+    // Tier 2: Moderate downturn
+    rebalanceTiers.insert(2, RebalanceTier {
+        triggerThreshold: -40,
+        stablecoinTarget: 60,
+        executionSpeed: 2
+    });
+    
+    // Tier 3: Severe downturn
+    rebalanceTiers.insert(3, RebalanceTier {
+        triggerThreshold: -60,
+        stablecoinTarget: 80,
+        executionSpeed: 3
+    });
+    
+    // Tier 4: Bull market
+    rebalanceTiers.insert(4, RebalanceTier {
+        triggerThreshold: 40,
+        stablecoinTarget: 20,
+        executionSpeed: 1
+    });
+}
+
+// Update market data (oracle only)
+export circuit updateMarketData(
+    assetId: Bytes<32>,
+    price: Uint<64>,
+    volume: Uint<64>,
+    volatility: Uint<8>,
+    trend: Int<8>
+): [] {
+    const oracleId = own_public_key().bytes;
+    const oracleIdDisclosed = disclose(oracleId);
+    
+    assert authorizedOracles.member(oracleIdDisclosed)
+        "Not an authorized oracle";
+    
+    const marketData = MarketData {
+        priceUSD: disclose(price),
+        volume24h: disclose(volume),
+        volatilityIndex: disclose(volatility),
+        trendDirection: disclose(trend),
+        lastUpdate: getCurrentTimestamp(),
+        confidence: calculateConfidence(disclose(volume), disclose(volatility))
+    };
+    
+    marketDataFeeds.insert(disclose(assetId), marketData);
+    
+    // Check if rebalancing is needed
+    if (shouldRebalance(marketData)) {
+        triggerRebalance(marketData);
+    }
+}
+
+// Check if rebalancing should occur
+circuit shouldRebalance(data: MarketData): Bool {
+    const now = getCurrentTimestamp();
+    const cooldownPassed = (now - treasuryState.lastRebalance) >= riskSettings.rebalanceCooldown;
+    
+    if (!cooldownPassed) {
+        return false;
+    }
+    
+    // Check circuit breaker for flash crash
+    if (riskSettings.circuitBreakerEnabled) {
+        if (data.volatilityIndex > 90 && data.confidence < 50) {
+            return false;  // Market too unstable
+        }
+    }
+    
+    // Check if trend crosses any tier threshold
+    var tierTriggered = false;
+    for (tier in [1, 2, 3, 4]) {
+        const tierSettings = rebalanceTiers.lookup(tier);
+        if (data.trendDirection <= tierSettings.triggerThreshold) {
+            tierTriggered = true;
+        }
+    }
+    
+    return tierTriggered;
+}
+
+// Trigger rebalancing based on market conditions
+circuit triggerRebalance(data: MarketData): [] {
+    // Determine target allocation based on market trend
+    var targetStablecoin: Uint<8> = treasuryState.stablecoinPercent;
+    
+    // Find appropriate tier
+    for (tier in [3, 2, 1, 4]) {  // Check from most severe to least
+        const tierSettings = rebalanceTiers.lookup(tier);
+        if (data.trendDirection <= tierSettings.triggerThreshold) {
+            targetStablecoin = tierSettings.stablecoinTarget;
+            break;
+        }
+    }
+    
+    // Apply risk settings constraints
+    if (targetStablecoin < riskSettings.minStablecoin) {
+        targetStablecoin = riskSettings.minStablecoin;
+    }
+    if (targetStablecoin > riskSettings.maxStablecoin) {
+        targetStablecoin = riskSettings.maxStablecoin;
+    }
+    
+    // Execute tiered rebalancing (gradual, not all at once)
+    executeRebalance(targetStablecoin, data.volatilityIndex);
+}
+
+// Execute the rebalancing
+circuit executeRebalance(
+    targetStablecoin: Uint<8>,
+    volatility: Uint<8>
+): [] {
+    const currentStablecoin = treasuryState.stablecoinPercent;
+    
+    // Calculate step size based on volatility (smaller steps in volatile markets)
+    var stepSize: Uint<8> = 10;  // Default 10% steps
+    if (volatility > 70) {
+        stepSize = 5;  // 5% steps in high volatility
+    } else if (volatility < 30) {
+        stepSize = 15;  // 15% steps in low volatility
+    }
+    
+    // Move towards target gradually
+    var newStablecoin: Uint<8>;
+    if (targetStablecoin > currentStablecoin) {
+        // Moving to stablecoins (risk-off)
+        newStablecoin = currentStablecoin + min(stepSize, targetStablecoin - currentStablecoin);
+    } else {
+        // Moving to risk assets (risk-on)
+        newStablecoin = currentStablecoin - min(stepSize, currentStablecoin - targetStablecoin);
+    }
+    
+    // Update treasury state
+    treasuryState.stablecoinPercent = newStablecoin;
+    treasuryState.riskAssetPercent = 100 - newStablecoin;
+    treasuryState.lastRebalance = getCurrentTimestamp();
+    treasuryState.rebalanceCount = treasuryState.rebalanceCount + 1;
+    
+    // Record rebalance in history
+    const txHash = generateTransactionHash(newStablecoin, getCurrentTimestamp());
+    rebalanceHistory.insert(treasuryState.rebalanceCount, txHash);
+}
+
+// Add asset to watch list
+export circuit addWatchedAsset(
+    assetId: Bytes<32>,
+    weight: Uint<8>  // Portfolio weight percentage
+): [] {
+    const adminId = own_public_key().bytes;
+    const adminIdDisclosed = disclose(adminId);
+    
+    assert authorizedOracles.member(adminIdDisclosed)
+        "Not authorized";
+    
+    const assetIdDisclosed = disclose(assetId);
+    watchedAssets.insert(assetIdDisclosed);
+    assetWeights.insert(assetIdDisclosed, disclose(weight));
+}
+
+// Update risk settings
+export circuit updateRiskSettings(
+    newRiskLevel: Uint<8>,
+    newCooldown: Uint<64>
+): [] {
+    const adminId = own_public_key().bytes;
+    const adminIdDisclosed = disclose(adminId);
+    
+    assert authorizedOracles.member(adminIdDisclosed)
+        "Not authorized";
+    
+    riskSettings.riskAppetite = disclose(newRiskLevel);
+    riskSettings.rebalanceCooldown = disclose(newCooldown);
+}
+
+// Get current allocation (privacy-preserving)
+export circuit getAllocation(): Opaque<"allocation"> {
+    // Return opaque allocation proof without revealing exact percentages
+    return opaque({
+        isBalanced: treasuryState.stablecoinPercent >= 20 && 
+                   treasuryState.stablecoinPercent <= 80,
+        lastRebalance: treasuryState.lastRebalance,
+        rebalanceCount: treasuryState.rebalanceCount
+    });
+}
+
+// Verify allocation compliance (ZK proof)
+export circuit verifyAllocationCompliance(
+    minStable: Uint<8>,
+    maxStable: Uint<8>
+): Bool {
+    const current = treasuryState.stablecoinPercent;
+    return current >= disclose(minStable) && current <= disclose(maxStable);
+}
+
+// Calculate market composite score
+export circuit calculateMarketScore(): Int<8> {
+    var totalScore: Int<16> = 0;
+    var totalWeight: Uint<16> = 0;
+    
+    for (assetId in watchedAssets) {
+        if (marketDataFeeds.member(assetId)) {
+            const data = marketDataFeeds.lookup(assetId);
+            const weight = assetWeights.lookup(assetId);
+            totalScore = totalScore + (data.trendDirection * weight);
+            totalWeight = totalWeight + weight;
+        }
+    }
+    
+    if (totalWeight > 0) {
+        return totalScore / totalWeight;
+    }
+    return 0;
+}
+
+// Helper: Calculate data confidence score
+circuit calculateConfidence(volume: Uint<64>, volatility: Uint<8>): Uint<8> {
+    // Higher volume and lower volatility = higher confidence
+    var confidence: Uint<8> = 50;  // Base confidence
+    
+    if (volume > 1000000) {  // > $1M volume
+        confidence = confidence + 25;
+    } else if (volume > 100000) {  // > $100k volume
+        confidence = confidence + 15;
+    }
+    
+    if (volatility < 30) {
+        confidence = confidence + 25;
+    } else if (volatility < 50) {
+        confidence = confidence + 10;
+    }
+    
+    return min(confidence, 100);
+}
+
+// Helper: Generate transaction hash
+circuit generateTransactionHash(amount: Uint<8>, timestamp: Uint<64>): Bytes<32> {
+    // Simplified - would use proper hash
+    return own_public_key().bytes;
+}
+
+// Helper: Get minimum of two values
+circuit min(a: Uint<8>, b: Uint<8>): Uint<8> {
+    if (a < b) {
+        return a;
+    }
+    return b;
+}
+
+// Helper: Get current timestamp (oracle in production)
+circuit getCurrentTimestamp(): Uint<64> {
+    return 1735000000;  // Placeholder
+}

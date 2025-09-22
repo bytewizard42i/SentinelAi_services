@@ -1,0 +1,450 @@
+// SentinelAI Services - Risk Profiler Contract  
+// Priority 3: Individual User Preferences and Allocation
+// Copyright (C) 2025 SentinelAI Services
+// SPDX-License-Identifier: Apache-2.0
+
+pragma language_version 0.15;
+
+import CompactStandardLibrary;
+
+// User risk profile structure
+export struct UserRiskProfile {
+    userId: Bytes<32>,
+    age: Uint<8>,
+    riskTolerance: Uint<8>,        // 1-10 scale
+    investmentGoals: Uint<8>,      // 1=preservation, 2=income, 3=growth, 4=speculation
+    experienceLevel: Uint<8>,      // 1=novice, 2=intermediate, 3=advanced, 4=expert
+    timeHorizon: Uint<8>,          // Years
+    profileScore: Uint<8>,         // Composite risk score 0-100
+    createdAt: Uint<64>,
+    lastUpdated: Uint<64>,
+    isLocked: Bool                 // Locked profiles can't be changed
+}
+
+// Allocation recommendation structure
+export struct AllocationRecommendation {
+    stablecoinPercent: Uint<8>,    // 0-100
+    majorAssetsPercent: Uint<8>,   // BTC, ETH, etc.
+    growthAssetsPercent: Uint<8>,  // Altcoins
+    maxDrawdownTolerance: Uint<8>, // Maximum acceptable loss %
+    rebalanceFrequency: Uint<32>   // Days between rebalances
+}
+
+// Profile change alert
+export struct ProfileChangeAlert {
+    userId: Bytes<32>,
+    previousScore: Uint<8>,
+    newScore: Uint<8>,
+    changeType: Uint<8>,           // 1=age, 2=risk, 3=goals, 4=suspicious
+    timestamp: Uint<64>,
+    requiresReview: Bool
+}
+
+// Quiz response structure
+export struct QuizResponse {
+    questionId: Uint<8>,
+    answer: Uint<8>,
+    weight: Uint<8>                // Question importance
+}
+
+// Contract state
+export ledger userProfiles: Map<Bytes<32>, UserRiskProfile>;
+export ledger allocations: Map<Bytes<32>, AllocationRecommendation>;
+export ledger profileAlerts: Map<Bytes<32>, ProfileChangeAlert>;
+export ledger quizResponses: Map<Bytes<32>, Map<Uint<8>, QuizResponse>>;
+
+// Configuration
+export ledger maxAgeForHighRisk: Uint<8> = 55;  // Max age for high risk tolerance
+export ledger minAgeForInvesting: Uint<8> = 18;  // Minimum age
+export ledger suspiciousChangeThreshold: Uint<8> = 30;  // Score change threshold
+
+// Integration points with other contracts
+export ledger watchdogContract: Bytes<32>;  // Address of TreasuryWatchdog
+export ledger guardianContract: Bytes<32>;  // Address of MarketGuardian
+
+// Initialize user profile with quiz responses
+export circuit createProfile(
+    age: Uint<8>,
+    responses: Map<Uint<8>, Uint<8>  // Question ID -> Answer
+): [] {
+    const userId = own_public_key().bytes;
+    const userIdDisclosed = disclose(userId);
+    
+    assert !userProfiles.member(userIdDisclosed)
+        "Profile already exists";
+    
+    const ageDisclosed = disclose(age);
+    assert ageDisclosed >= disclose(minAgeForInvesting)
+        "Below minimum age for investing";
+    
+    // Calculate profile scores from quiz
+    const scores = calculateProfileScores(responses, ageDisclosed);
+    
+    // Check for suspicious profile
+    if (isSuspiciousProfile(ageDisclosed, scores.riskTolerance)) {
+        createSuspiciousProfileAlert(userIdDisclosed, ageDisclosed, scores.riskTolerance);
+    }
+    
+    const profile = UserRiskProfile {
+        userId: userIdDisclosed,
+        age: ageDisclosed,
+        riskTolerance: scores.riskTolerance,
+        investmentGoals: scores.goals,
+        experienceLevel: scores.experience,
+        timeHorizon: scores.timeHorizon,
+        profileScore: scores.composite,
+        createdAt: getCurrentTimestamp(),
+        lastUpdated: getCurrentTimestamp(),
+        isLocked: false
+    };
+    
+    userProfiles.insert(userIdDisclosed, profile);
+    
+    // Generate allocation recommendation
+    const allocation = generateAllocation(profile);
+    allocations.insert(userIdDisclosed, allocation);
+    
+    // Store quiz responses for audit
+    for (questionId in responses.keys()) {
+        const response = QuizResponse {
+            questionId: questionId,
+            answer: responses.lookup(questionId),
+            weight: getQuestionWeight(questionId)
+        };
+        storeQuizResponse(userIdDisclosed, questionId, response);
+    }
+}
+
+// Calculate profile scores from quiz responses
+circuit calculateProfileScores(
+    responses: Map<Uint<8>, Uint<8>,
+    age: Uint<8>
+): {
+    riskTolerance: Uint<8>,
+    goals: Uint<8>,
+    experience: Uint<8>,
+    timeHorizon: Uint<8>,
+    composite: Uint<8>
+} {
+    var riskScore: Uint<16> = 0;
+    var goalsScore: Uint<16> = 0;
+    var experienceScore: Uint<16> = 0;
+    var timeScore: Uint<16> = 0;
+    
+    // Process quiz responses (simplified scoring)
+    // Questions 1-3: Risk tolerance
+    riskScore = responses.lookup(1) * 3 + 
+                responses.lookup(2) * 2 + 
+                responses.lookup(3) * 2;
+    
+    // Questions 4-5: Investment goals
+    goalsScore = responses.lookup(4) * 2 + 
+                 responses.lookup(5) * 2;
+    
+    // Questions 6-7: Experience level
+    experienceScore = responses.lookup(6) * 2 + 
+                     responses.lookup(7) * 1;
+    
+    // Question 8: Time horizon
+    timeScore = responses.lookup(8) * 5;
+    
+    // Age adjustment
+    const ageMultiplier = calculateAgeMultiplier(age);
+    riskScore = (riskScore * ageMultiplier) / 100;
+    
+    // Normalize scores to 1-10 or appropriate ranges
+    const finalRiskTolerance = min(10, max(1, riskScore / 7));
+    const finalGoals = min(4, max(1, goalsScore / 4));
+    const finalExperience = min(4, max(1, experienceScore / 3));
+    const finalTimeHorizon = min(30, max(1, timeScore));
+    
+    // Calculate composite score (0-100)
+    const composite = (finalRiskTolerance * 4 + 
+                      finalGoals * 2 + 
+                      finalExperience * 2 + 
+                      min(finalTimeHorizon, 10) * 2);
+    
+    return {
+        riskTolerance: finalRiskTolerance,
+        goals: finalGoals,
+        experience: finalExperience,
+        timeHorizon: finalTimeHorizon,
+        composite: composite
+    };
+}
+
+// Generate allocation based on profile
+circuit generateAllocation(profile: UserRiskProfile): AllocationRecommendation {
+    var stablecoin: Uint<8>;
+    var majorAssets: Uint<8>;
+    var growthAssets: Uint<8>;
+    var maxDrawdown: Uint<8>;
+    var rebalanceFreq: Uint<32>;
+    
+    // Conservative profile (score < 30)
+    if (profile.profileScore < 30) {
+        stablecoin = 60;
+        majorAssets = 30;
+        growthAssets = 10;
+        maxDrawdown = 15;
+        rebalanceFreq = 30;  // Monthly
+    }
+    // Balanced profile (score 30-60)
+    else if (profile.profileScore < 60) {
+        stablecoin = 30;
+        majorAssets = 50;
+        growthAssets = 20;
+        maxDrawdown = 25;
+        rebalanceFreq = 14;  // Bi-weekly
+    }
+    // Growth profile (score 60-80)
+    else if (profile.profileScore < 80) {
+        stablecoin = 15;
+        majorAssets = 55;
+        growthAssets = 30;
+        maxDrawdown = 35;
+        rebalanceFreq = 7;   // Weekly
+    }
+    // Aggressive profile (score 80+)
+    else {
+        stablecoin = 10;
+        majorAssets = 40;
+        growthAssets = 50;
+        maxDrawdown = 50;
+        rebalanceFreq = 3;   // Bi-daily
+    }
+    
+    // Age-based adjustments
+    if (profile.age > 60) {
+        stablecoin = min(100, stablecoin + 20);
+        growthAssets = max(0, growthAssets - 20);
+    } else if (profile.age > 50) {
+        stablecoin = min(100, stablecoin + 10);
+        growthAssets = max(0, growthAssets - 10);
+    }
+    
+    // Time horizon adjustments
+    if (profile.timeHorizon < 2) {
+        stablecoin = min(100, stablecoin + 30);
+        growthAssets = max(0, growthAssets - 20);
+        majorAssets = max(0, majorAssets - 10);
+    }
+    
+    return AllocationRecommendation {
+        stablecoinPercent: stablecoin,
+        majorAssetsPercent: majorAssets,
+        growthAssetsPercent: growthAssets,
+        maxDrawdownTolerance: maxDrawdown,
+        rebalanceFrequency: rebalanceFreq
+    };
+}
+
+// Update profile (with change detection)
+export circuit updateProfile(
+    newRiskTolerance: Uint<8>,
+    newGoals: Uint<8>
+): [] {
+    const userId = own_public_key().bytes;
+    const userIdDisclosed = disclose(userId);
+    
+    assert userProfiles.member(userIdDisclosed)
+        "Profile not found";
+    
+    var profile = userProfiles.lookup(userIdDisclosed);
+    
+    assert !profile.isLocked
+        "Profile is locked";
+    
+    const previousScore = profile.profileScore;
+    
+    // Update profile fields
+    profile.riskTolerance = disclose(newRiskTolerance);
+    profile.investmentGoals = disclose(newGoals);
+    profile.lastUpdated = getCurrentTimestamp();
+    
+    // Recalculate composite score
+    const newScore = (disclose(newRiskTolerance) * 4 + 
+                     disclose(newGoals) * 2 + 
+                     profile.experienceLevel * 2 + 
+                     min(profile.timeHorizon, 10) * 2);
+    profile.profileScore = newScore;
+    
+    // Check for suspicious changes
+    const scoreDiff = newScore > previousScore ? 
+                     newScore - previousScore : 
+                     previousScore - newScore;
+    
+    if (scoreDiff > disclose(suspiciousChangeThreshold)) {
+        // Flag suspicious change
+        const alert = ProfileChangeAlert {
+            userId: userIdDisclosed,
+            previousScore: previousScore,
+            newScore: newScore,
+            changeType: 4,  // Suspicious
+            timestamp: getCurrentTimestamp(),
+            requiresReview: true
+        };
+        profileAlerts.insert(userIdDisclosed, alert);
+        
+        // Notify watchdog contract
+        notifyWatchdog(userIdDisclosed, 4);
+    }
+    
+    userProfiles.insert(userIdDisclosed, profile);
+    
+    // Update allocation
+    const newAllocation = generateAllocation(profile);
+    allocations.insert(userIdDisclosed, newAllocation);
+}
+
+// Check if profile is suspicious
+circuit isSuspiciousProfile(age: Uint<8>, riskTolerance: Uint<8>): Bool {
+    // Old age with very high risk tolerance
+    if (age > disclose(maxAgeForHighRisk) && riskTolerance > 8) {
+        return true;
+    }
+    
+    // Very young with maximum risk (potential lack of understanding)
+    if (age < 25 && riskTolerance == 10) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Create alert for suspicious profile
+circuit createSuspiciousProfileAlert(
+    userId: Bytes<32>,
+    age: Uint<8>,
+    riskTolerance: Uint<8>
+): [] {
+    const alert = ProfileChangeAlert {
+        userId: userId,
+        previousScore: 0,
+        newScore: riskTolerance * 10,
+        changeType: 2,  // Risk-related
+        timestamp: getCurrentTimestamp(),
+        requiresReview: true
+    };
+    
+    profileAlerts.insert(userId, alert);
+}
+
+// Get user allocation (privacy-preserving)
+export circuit getUserAllocation(userId: Bytes<32>): Opaque<"allocation"> {
+    const userIdDisclosed = disclose(userId);
+    
+    assert allocations.member(userIdDisclosed)
+        "No allocation found";
+    
+    const allocation = allocations.lookup(userIdDisclosed);
+    
+    // Return opaque allocation info
+    return opaque({
+        isConservative: allocation.stablecoinPercent > 50,
+        isBalanced: allocation.stablecoinPercent >= 20 && 
+                   allocation.stablecoinPercent <= 50,
+        isAggressive: allocation.growthAssetsPercent > 40
+    });
+}
+
+// Verify user meets risk requirements
+export circuit verifyRiskCompliance(
+    userId: Bytes<32>,
+    requiredMaxRisk: Uint<8>
+): Bool {
+    const userIdDisclosed = disclose(userId);
+    
+    assert userProfiles.member(userIdDisclosed)
+        "Profile not found";
+    
+    const profile = userProfiles.lookup(userIdDisclosed);
+    return profile.riskTolerance <= disclose(requiredMaxRisk);
+}
+
+// Integration: Notify watchdog of profile changes
+circuit notifyWatchdog(userId: Bytes<32>, alertType: Uint<8>): [] {
+    // In production, this would call the watchdog contract
+    // For now, just record the notification
+    const notification = opaque({
+        userId: userId,
+        alertType: alertType,
+        timestamp: getCurrentTimestamp()
+    });
+}
+
+// Integration: Get market conditions from guardian
+export circuit getMarketAdjustedAllocation(userId: Bytes<32>): AllocationRecommendation {
+    const userIdDisclosed = disclose(userId);
+    
+    assert allocations.member(userIdDisclosed)
+        "No allocation found";
+    
+    var allocation = allocations.lookup(userIdDisclosed);
+    
+    // In production, would query MarketGuardian for conditions
+    // For now, return base allocation
+    return allocation;
+}
+
+// Admin: Lock/unlock profile
+export circuit lockProfile(userId: Bytes<32>, lock: Bool): [] {
+    // Would check admin permissions via watchdog
+    const userIdDisclosed = disclose(userId);
+    
+    assert userProfiles.member(userIdDisclosed)
+        "Profile not found";
+    
+    var profile = userProfiles.lookup(userIdDisclosed);
+    profile.isLocked = disclose(lock);
+    userProfiles.insert(userIdDisclosed, profile);
+}
+
+// Helper functions
+circuit calculateAgeMultiplier(age: Uint<8>): Uint<8> {
+    if (age < 30) {
+        return 100;  // No reduction
+    } else if (age < 40) {
+        return 90;
+    } else if (age < 50) {
+        return 75;
+    } else if (age < 60) {
+        return 60;
+    } else {
+        return 40;  // Maximum reduction for 60+
+    }
+}
+
+circuit getQuestionWeight(questionId: Uint<8>): Uint<8> {
+    // Different questions have different importance
+    if (questionId <= 3) {
+        return 3;  // Risk tolerance questions
+    } else if (questionId <= 5) {
+        return 2;  // Goals questions
+    } else {
+        return 1;  // Other questions
+    }
+}
+
+circuit storeQuizResponse(userId: Bytes<32>, questionId: Uint<8>, response: QuizResponse): [] {
+    // Simplified storage - in production would use nested maps properly
+    // For now, just note that response is stored
+}
+
+circuit min(a: Uint<8>, b: Uint<8>): Uint<8> {
+    if (a < b) {
+        return a;
+    }
+    return b;
+}
+
+circuit max(a: Uint<8>, b: Uint<8>): Uint<8> {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
+
+circuit getCurrentTimestamp(): Uint<64> {
+    return 1735000000;  // Placeholder
+}

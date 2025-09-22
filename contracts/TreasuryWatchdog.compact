@@ -1,0 +1,339 @@
+// SentinelAI Services - Treasury Watchdog Contract
+// Priority 1: Safety from Nefarious Actions
+// Copyright (C) 2025 SentinelAI Services
+// SPDX-License-Identifier: Apache-2.0
+
+pragma language_version 0.15;
+
+import CompactStandardLibrary;
+
+// User behavior profile structure
+export struct BehaviorProfile {
+    avgTransactionSize: Uint<64>,
+    typicalActiveHours: Uint<8>,  // Bitmap for 3-hour blocks (8 blocks = 24 hours)
+    transactionCount: Uint<32>,
+    lastActivity: Uint<64>,        // Timestamp
+    riskScore: Uint<8>,            // 0-100 scale
+    isAdmin: Bool
+}
+
+// Anomaly alert structure
+export struct AnomalyAlert {
+    userId: Bytes<32>,
+    alertType: Uint<8>,  // 1=size, 2=timing, 3=frequency, 4=admin_action
+    severity: Uint<8>,   // 1=low, 2=medium, 3=high, 4=critical
+    timestamp: Uint<64>,
+    details: Opaque<"string">
+}
+
+// Challenge request for suspicious actions
+export struct Challenge {
+    challengeId: Bytes<32>,
+    userId: Bytes<32>,
+    action: Opaque<"string">,
+    requiredApprovals: Uint<8>,
+    currentApprovals: Uint<8>,
+    deadline: Uint<64>,
+    isFrozen: Bool
+}
+
+// Contract state
+export ledger userProfiles: Map<Bytes<32>, BehaviorProfile>;
+export ledger activeAlerts: Map<Bytes<32>, AnomalyAlert>;
+export ledger pendingChallenges: Map<Bytes<32>, Challenge>;
+export ledger frozenAccounts: Set<Bytes<32>>;
+export ledger adminList: Set<Bytes<32>>;
+
+// Configuration parameters
+export ledger anomalyThreshold: Uint<8> = 75;  // Score above this triggers alert
+export ledger freezeThreshold: Uint<8> = 90;   // Score above this can freeze
+export ledger challengeTimeout: Uint<64> = 3600; // 1 hour in seconds
+
+// Initialize user profile
+export circuit initializeProfile(isAdmin: Bool): [] {
+    const userId = own_public_key().bytes;
+    const userIdDisclosed = disclose(userId);
+    
+    assert !userProfiles.member(userIdDisclosed)
+        "Profile already exists";
+    
+    const newProfile = BehaviorProfile {
+        avgTransactionSize: 0,
+        typicalActiveHours: 0,
+        transactionCount: 0,
+        lastActivity: 0,
+        riskScore: 0,
+        isAdmin: disclose(isAdmin)
+    };
+    
+    userProfiles.insert(userIdDisclosed, newProfile);
+    
+    if (disclose(isAdmin)) {
+        adminList.insert(userIdDisclosed);
+    }
+}
+
+// Record transaction for profile building
+export circuit recordTransaction(
+    amount: Uint<64>,
+    timestamp: Uint<64>
+): Uint<8> {  // Returns anomaly score
+    const userId = own_public_key().bytes;
+    const userIdDisclosed = disclose(userId);
+    
+    assert userProfiles.member(userIdDisclosed)
+        "Profile not found";
+    
+    var profile = userProfiles.lookup(userIdDisclosed);
+    const amountDisclosed = disclose(amount);
+    const timestampDisclosed = disclose(timestamp);
+    
+    // Calculate anomaly score based on deviations
+    var anomalyScore: Uint<8> = 0;
+    
+    // Check transaction size anomaly
+    if (profile.avgTransactionSize > 0) {
+        const deviation = calculateDeviation(amountDisclosed, profile.avgTransactionSize);
+        if (deviation > 200) {  // More than 2x average
+            anomalyScore = anomalyScore + 30;
+        }
+    }
+    
+    // Check timing anomaly
+    const hourBlock = (timestampDisclosed / 10800) % 8;  // 3-hour blocks
+    const hourMask: Uint<8> = 1 << hourBlock;
+    if ((profile.typicalActiveHours & hourMask) == 0 && profile.transactionCount > 10) {
+        anomalyScore = anomalyScore + 20;  // Unusual time
+    }
+    
+    // Check frequency anomaly
+    if (profile.lastActivity > 0) {
+        const timeDiff = timestampDisclosed - profile.lastActivity;
+        if (timeDiff < 60 && profile.transactionCount > 5) {  // Less than 1 minute
+            anomalyScore = anomalyScore + 25;  // Rapid transactions
+        }
+    }
+    
+    // Update profile with new data
+    profile.avgTransactionSize = updateAverage(
+        profile.avgTransactionSize,
+        amountDisclosed,
+        profile.transactionCount
+    );
+    profile.typicalActiveHours = profile.typicalActiveHours | hourMask;
+    profile.transactionCount = profile.transactionCount + 1;
+    profile.lastActivity = timestampDisclosed;
+    profile.riskScore = anomalyScore;
+    
+    userProfiles.insert(userIdDisclosed, profile);
+    
+    // Create alert if threshold exceeded
+    if (anomalyScore >= disclose(anomalyThreshold)) {
+        createAlert(userIdDisclosed, anomalyScore, amountDisclosed, timestampDisclosed);
+    }
+    
+    return anomalyScore;
+}
+
+// Check admin action for anomalies
+export circuit validateAdminAction(
+    action: Opaque<"string">,
+    targetUser: Bytes<32>,
+    amount: Uint<64>
+): Bool {
+    const adminId = own_public_key().bytes;
+    const adminIdDisclosed = disclose(adminId);
+    
+    assert adminList.member(adminIdDisclosed)
+        "Not an admin";
+    
+    assert !frozenAccounts.member(adminIdDisclosed)
+        "Admin account is frozen";
+    
+    const profile = userProfiles.lookup(adminIdDisclosed);
+    
+    // High-value admin actions require challenge
+    if (disclose(amount) > profile.avgTransactionSize * 5) {
+        const challengeId = createChallenge(
+            adminIdDisclosed,
+            action,
+            disclose(targetUser),
+            disclose(amount)
+        );
+        return false;  // Action blocked pending challenge
+    }
+    
+    return true;
+}
+
+// Create anomaly alert
+circuit createAlert(
+    userId: Bytes<32>,
+    score: Uint<8>,
+    amount: Uint<64>,
+    timestamp: Uint<64>
+): [] {
+    const alertId = hash(userId, timestamp);
+    
+    var severity: Uint<8> = 1;  // Low
+    if (score >= 90) {
+        severity = 4;  // Critical
+    } else if (score >= 80) {
+        severity = 3;  // High
+    } else if (score >= 70) {
+        severity = 2;  // Medium
+    }
+    
+    const alert = AnomalyAlert {
+        userId: userId,
+        alertType: determineAlertType(score),
+        severity: severity,
+        timestamp: timestamp,
+        details: opaque("Anomaly detected with score " + score)
+    };
+    
+    activeAlerts.insert(alertId, alert);
+    
+    // Auto-freeze if critical
+    if (severity == 4 && score >= disclose(freezeThreshold)) {
+        frozenAccounts.insert(userId);
+    }
+}
+
+// Create challenge for suspicious action
+circuit createChallenge(
+    userId: Bytes<32>,
+    action: Opaque<"string">,
+    targetUser: Bytes<32>,
+    amount: Uint<64>
+): Bytes<32> {
+    const challengeId = hash(userId, amount, targetUser);
+    const timestamp = getCurrentTimestamp();
+    
+    const challenge = Challenge {
+        challengeId: challengeId,
+        userId: userId,
+        action: action,
+        requiredApprovals: 2,  // Require 2 admin approvals
+        currentApprovals: 0,
+        deadline: timestamp + disclose(challengeTimeout),
+        isFrozen: true
+    };
+    
+    pendingChallenges.insert(challengeId, challenge);
+    return challengeId;
+}
+
+// Approve a challenge (admin only)
+export circuit approveChallenge(challengeId: Bytes<32>): Bool {
+    const adminId = own_public_key().bytes;
+    const adminIdDisclosed = disclose(adminId);
+    
+    assert adminList.member(adminIdDisclosed)
+        "Not an admin";
+    
+    const challengeIdDisclosed = disclose(challengeId);
+    assert pendingChallenges.member(challengeIdDisclosed)
+        "Challenge not found";
+    
+    var challenge = pendingChallenges.lookup(challengeIdDisclosed);
+    
+    // Can't approve own challenge
+    assert challenge.userId != adminIdDisclosed
+        "Cannot approve own challenge";
+    
+    challenge.currentApprovals = challenge.currentApprovals + 1;
+    
+    if (challenge.currentApprovals >= challenge.requiredApprovals) {
+        challenge.isFrozen = false;
+        pendingChallenges.remove(challengeIdDisclosed);
+        return true;  // Challenge approved
+    }
+    
+    pendingChallenges.insert(challengeIdDisclosed, challenge);
+    return false;  // Still pending
+}
+
+// Unfreeze account (admin only, with challenge)
+export circuit unfreezeAccount(userId: Bytes<32>): [] {
+    const adminId = own_public_key().bytes;
+    const adminIdDisclosed = disclose(adminId);
+    
+    assert adminList.member(adminIdDisclosed)
+        "Not an admin";
+    
+    const userIdDisclosed = disclose(userId);
+    assert frozenAccounts.member(userIdDisclosed)
+        "Account not frozen";
+    
+    // Unfreezing requires admin validation
+    const action = opaque("Unfreeze account");
+    if (validateAdminAction(action, userId, 0)) {
+        frozenAccounts.remove(userIdDisclosed);
+    }
+}
+
+// Helper: Calculate percentage deviation
+circuit calculateDeviation(value: Uint<64>, average: Uint<64>): Uint<64> {
+    if (average == 0) {
+        return 0;
+    }
+    const diff = value > average ? value - average : average - value;
+    return (diff * 100) / average;
+}
+
+// Helper: Update moving average
+circuit updateAverage(
+    currentAvg: Uint<64>,
+    newValue: Uint<64>,
+    count: Uint<32>
+): Uint<64> {
+    if (count == 0) {
+        return newValue;
+    }
+    return ((currentAvg * count) + newValue) / (count + 1);
+}
+
+// Helper: Determine alert type from score components
+circuit determineAlertType(score: Uint<8>): Uint<8> {
+    // Simplified - in production would analyze score components
+    if (score >= 50) {
+        return 4;  // Admin action anomaly
+    } else if (score >= 30) {
+        return 3;  // Frequency anomaly
+    } else if (score >= 20) {
+        return 2;  // Timing anomaly
+    } else {
+        return 1;  // Size anomaly
+    }
+}
+
+// Helper: Mock timestamp (would use oracle in production)
+circuit getCurrentTimestamp(): Uint<64> {
+    // In production, this would call a time oracle
+    return 1735000000;  // Placeholder
+}
+
+// Helper: Hash function for IDs
+circuit hash(a: Bytes<32>, b: Uint<64>, c: Bytes<32>): Bytes<32> {
+    // Simplified hash - would use proper hash in production
+    return a;  // Placeholder
+}
+
+// Query functions
+export circuit isAccountFrozen(userId: Bytes<32>): Bool {
+    return frozenAccounts.member(disclose(userId));
+}
+
+export circuit getUserRiskScore(userId: Bytes<32>): Uint<8> {
+    const userIdDisclosed = disclose(userId);
+    assert userProfiles.member(userIdDisclosed)
+        "Profile not found";
+    
+    const profile = userProfiles.lookup(userIdDisclosed);
+    return profile.riskScore;
+}
+
+export circuit getPendingChallenges(): Uint<32> {
+    return pendingChallenges.size();
+}
