@@ -1,0 +1,4148 @@
+All right. So, we're about to get started with the with
+1:53
+the board truck. Let's just wait a couple just give one minute so we can get
+1:59
+started with it. About to get us started right now. So,
+2:05
+we're just waiting a couple minutes. All right. So,
+2:41
+Hello. Yeah, we're working about to get started with the screen and the
+2:46
+workshop. One sec and we will get going.
+3:34
+All right. So, checking checking. Can you guys hear me?
+3:42
+All right. So, let's get it started. First thing I want to welcome you all.
+3:48
+This is going to be the the first workshop we're going to be doing.
+3:54
+In this case, we're going to be going over uh how to create AI agents with the
+3:59
+Midnight SDK. Right? So,
+4:06
+we're going to have the main objective. First, we're going to
+4:12
+set up the Midnight S MTP. This will allow us to com to connect any agent to
+4:19
+the Midnight blockchain. And secondly, we're going to um configure this MCP
+4:25
+into an AI agent. And for now, we're going to be using Elisa OS, but I want to state clearly
+4:32
+that u you can use whichever AI framework you might want. In this case, we're doing the demo with Elisa
+4:40
+and we will configure the AI agent. And in the in the in the demo section, we're
+4:45
+going to communicate with the AI agent via Discord. So this is to to showcase
+4:50
+that this can be a a a community um a community bot for example. So you can
+4:57
+interact with it. It can be like your personal own bot that manages your wallet. You can have an a a hot wallet
+5:05
+um with the AI agent and just use as use it as an assistant because you communicate with it with natural
+5:10
+language, right? So you will say like uh okay let's send these baby tokens to this address and then you have to to
+5:17
+wait for it. You don't have to do any any crypto stuff. You're using natural language to communicate with the agent.
+5:31
+Okay. So um yeah we have the the the first question here. Yeah, we're going to be configuring the the midcp that's
+5:38
+allowing the the wallet to be connected to the blockchain and then we're going to configure an AI agent. So the agent
+5:47
+is going to be using Eliza OS and we're going to communicate with it via Discord.
+5:56
+Okay. And also I want to share how we're going to be structuring the the session, right? We're going to have a project
+6:02
+overview. That's going to be the first topic. Then we're going to go into setup actually getting hands dirty with with
+6:09
+the code and and terminal and all of the technical stuff. Then we're going to do the demo, see the AI working. And
+6:17
+finally, we're going to have a Q&A a Q&A section that um that we are going to uh
+6:25
+get questions and of course uh get in depth into your your doubts. Okay,
+6:33
+first going back to the to the project,
+6:39
+how does the midnight MCP works, right? MCP stands for model context protocol.
+6:46
+So this allow us to create and facilitate multiple tools to an AI
+6:53
+agent. For example, the Midnight MCP is a project and we under the hood are
+7:00
+using MidnightJS. So all the uh MPN modules that Midnight um provides, we're
+7:08
+using them in our MCP and our MCP is then exposing tools to
+7:16
+the agent. For example, it's exposing wallet status is exposing um balances.
+7:24
+So you can request but what is my native balance? What is my X token balance and
+7:29
+exposing transaction? So you can request hey send this many tokens to this address and that's as opposed to the
+7:36
+through the MCP. Um and and from there we can we can
+7:41
+build as many tools as as we like. For today we're going to be going over shielded tokens but in the future um
+7:49
+tomorrow's workshop we are going to be uh taking a look at some DAO uh tooling
+7:54
+right so we have configure a DO that's for the upcoming workshop tomorrow and
+8:00
+at that point we are exposing DAO tools also via the NCP I want to clarify the
+8:06
+NCP is is is open source you can see in the description we have the the GitHub
+8:12
+repo for It's open source, so you can clone it, fork it, uh make your specific
+8:18
+changes because some contract integration require specific changes. And if you are just using it like a
+8:24
+wallet, then you don't need to do anything aside from what we're going to be doing today. Configure it and start
+8:29
+using it. going to provide you with an address and you will be able to receive funds um see your balances make
+8:37
+transaction all of that through natural language and even through um this chat.
+8:43
+All right. So um
+8:49
+we have uh as I mentioned this is the midnight NCP right so we are going to
+8:54
+boot that one up and then we're going to boot the aging we are going to be
+8:59
+working with Eliza OS but in the end you can use whatever framework you want
+9:04
+because the MCP protocol is exposed uh that way it's a standard so any agent
+9:11
+can um read it see what tools it has available the NCP explains itself to the
+9:18
+agents. So when the agent requests what tools do you have, the NCP provides a
+9:25
+descriptive response. I have these many tools and these are the parameters,
+9:30
+these are the requirements for me to run this these commands, right?
+9:38
+Okay. So, um, from the from the general
+9:45
+overview, we're going into, um, what are we, um, looking at today for midnight,
+9:52
+we're going to be looking at shielded tokens. So, we created a a smart contract for a demo shielded token. um
+10:00
+the specific contract we're going to be taking a look at it on Friday because that's uh the the contractor specific
+10:07
+workshop but we're being going we're going to use it today.
+10:12
+Yeah, I will I we will get into into um screen sharing and configurations right
+10:18
+now. I'm just laying out what we can expect from from today call. Um
+10:24
+and yeah, in fact that's that's it. Right now we can move into the actual uh repository and getting started with
+10:31
+configurations. Okay. So I will u also
+10:36
+share with you this document. This document is also in the description. It is called um u workshop file. You can go
+10:45
+take a look at it, copy it and we're going to be following these steps basically today. Doing these steps, we
+10:53
+are going to start by the requirements. There are some requirements prior to
+10:58
+getting started. We're going to be running on node 22.15.1.
+11:06
+We're going to be using OS. Um, forgot to add the version here. So, that is
+11:12
+Liza 5 Eliza 1.5.9. We're going to be using Docker. This is
+11:18
+the standard Docker. And we are going to be using the proof server provided by the midnight team. Right? So this is
+11:25
+using proof server version 4. I have all of these already configured.
+11:32
+We can come here. This is an existing an existing version of it. Just check just
+11:37
+to confirm. We're using node 2251. Um other thing is Eliza OS. So we can do OS
+11:46
+version has to be 159. That's right. Then we're
+11:51
+going to check we have the proof server running. It is this one that I have here.
+11:58
+So it is running and it's running for uh Tesla. You can see here it's running for
+12:04
+Tesla. All right. So we have our requirements covered. In here we have the link to the to the
+12:12
+DGA repo. This is the NTP. We're going to be working on the workshop branch.
+12:19
+This is the most uh feed for for today's
+12:24
+demo. And so let's let's get we're going to start by cloning the the the
+12:33
+repo. Okay. So let me go to let's go to the and I will be updating
+12:41
+if anything is misplaced or is configured I will be updating it right now.
+12:48
+So let's update this broken link here. That's right.
+12:56
+I want to do it via SSH.
+13:02
+that will be doing as
+13:10
+okay. So, let's get started. I'm going to go to another tab. I don't want to
+13:16
+use the same one. And I'm going to clone here, but I will
+13:21
+do a different folder. This is going to be my MCP. Let's call it workshop.
+13:38
+Let me check.
+13:44
+Okay, someone is complaining about the file being logged, but this is public on
+13:50
+the web. Let me confirm that we have the correct. Anyone with the link is a viewer. Yep.
+13:59
+So, let me send it here. Probably it's a different
+14:05
+It's a different um
+14:11
+It's a different link. Probably. No, it's the same link. Can someone else
+14:19
+confirm? Oh, the repo. One sec.
+14:25
+The rep is public too. So, let me make sure the
+14:34
+Yeah, that one is correct too. It should be available. Uh, I don't know if someone else can confirm if we have the
+14:42
+the repo available.
+15:03
+Okay, thank you. We got confirmation that someone else is using it.
+15:09
+Okay. Not not not a problem. Okay. So, uh I
+15:14
+have cloned the the repo. Now, let's go into it. Um
+15:20
+and let's continue using our handy pile. Step two is to check out to the workshop branch. So let's do that.
+15:27
+We're ready. Okay. Now we're going to install dependencies. This is using yarn.
+15:40
+Just one thing here. Uh I have a comment here on a step five. At least right now
+15:45
+please don't don't use the same wallet because that is of course it is a test wallet. In the end, you will be able to
+15:51
+to use it if you want to. But right now, uh uh we're we we don't want to have a a
+15:57
+sync uh issue, right? Like someone else using the seat at the same time that I'm using it. We know there's nothing
+16:02
+relevant, nothing um there's no monetary um value in it. So let's you are going
+16:09
+to be running the first command and it's going to generate a clean um wallet for
+16:15
+you. it's not going to generate and it's not going to use an existing seat. Okay.
+16:20
+So, I have reached step five. Uh I mean a step four. So, I'm going to
+16:26
+do yarn build. Okay, that's done. Now I will be running
+16:33
+the commented version of the of the fifth command. You have to run the the
+16:38
+workshop one without the C. And if you need somebody needs tokens, I
+16:46
+can I can send them to you as part of of the of the demo.
+16:52
+Okay, we have another another request. The document is in the description. It should be publicly accessible. It
+16:59
+doesn't have any permission. It's public, but you only have access to to read it. You cannot modify it.
+17:09
+Okay. So this is the result of running the fifth step in the in the document
+17:16
+and we got sensitive information here. Let me be clear. We have sensitive
+17:22
+information after executing the fifth command.
+17:27
+What do we have here? We have the midnight seed. This is the root access of your wallet.
+17:35
+This is not to be shared. Of course, we're doing the demo. I will explain it to you and you don't need to share it
+17:42
+with anyone. I want to be clear because you might be implementing this later down the road. This is sensitive both
+17:51
+the seat and the pneummonic because they are both uh interchangeable, right?
+17:56
+Okay. So, we need to store this one. I already have it. It's in the document. And in case you you want or you might
+18:02
+need access through through wallet, you have the pinmonic there in case you want to set it up on a normal wallet. Aside
+18:10
+from that, we get a very very important section of of configuration here.
+18:17
+Um, we need this JSON uh response to be able to
+18:23
+communicate in LISA with the needp. What is this doing? basically pointing out
+18:30
+Elisa, you can talk to the midnight NCP right here in this file. So, it is the
+18:36
+location and some ENVs, right? We're using the since we created the the agent
+18:41
+the agent does have a name that's for organization purposes on your local it's
+18:46
+going to create some folders and that's why it does uses a a name and the rest of it is just the path to the exe
+18:53
+executable um MCP right okay
+19:02
+let's take a quick um quick water break here one
+19:15
+All right, let's let's continue. Okay, so we have
+19:20
+gone through the step number five. We have configured the agent
+19:38
+Okay. So now that we have configured the the agent, we are going to save this um
+19:44
+specific um configuration, right? That is step six on the on the document. So I
+19:50
+have it copied here. So I have the seed on on on the document and we have the
+19:55
+NCP server configuration as well. Okay. Now what what do we do next? We
+20:03
+need to copy some some EMVs. So let me run this command in the
+20:09
+in the same all of this is run in the in the root of the of the midline MCP.
+20:15
+Okay. Now that I that we have uh in the file I will I will open it. Right. So,
+20:22
+even though we have some some some
+20:28
+secrets there and everything that that I'm doing is is a is a test version of it. So, there's no monetary loss.
+20:41
+Okay. Well, I'm going to open the example. I'm not going to open the the final one because in the end I will be
+20:47
+very literal about what we're doing here. Okay. So this one does have the the basic configuration which is our
+20:55
+agent ID we have a network that we're working with right now it is test net and from there we have configuration for
+21:02
+the proof server right in case you want to boot it in a different location you
+21:07
+can change all of these but as of now we're using the local uh proof server and the rest we're using the public
+21:13
+available indexer and also the node we have here the port that we are going to
+21:19
+be running the the the wallet
+21:25
+and some other config that is coming later in the upcoming uh workshops.
+21:31
+Aside from from that, what we need to to change, let's make sure after we copy it to the ENV, we are going to edit the the
+21:38
+final one. We need to change this to the workshop in in the case you use the same
+21:43
+uh name as I did. And we need to uh I in my case I'm going to be using in token.
+21:49
+So I will be adding a example token and that's what I will be doing nothing
+21:55
+else. So one sec here I will do the change I will not be I will not be
+22:01
+sharing it because in the end we have uh open AI tokens and mess up. Let me see
+22:08
+here if I can get the
+22:20
+Oh, actually there's there's no secrets. So, let me let me share it with you. I
+22:25
+will edit it and share it with you so we can we can all take a look at it.
+22:43
+So let's get into it. So this is the the actual envy. I already changed the the
+22:49
+name of the agent and I will be adding a token. Right. So I will be adding a test token
+22:56
+that that we have. And
+23:02
+now that we are almost ready, let's see. Okay, I have here the the
+23:09
+eighth step is to add the token and then run the run the the server just
+23:16
+prior to running it. Let's let's take a quick a quick uh look at the at the
+23:22
+structure of the of the repo, right? That is something very important for you to be able to understand how how this
+23:28
+works and how you can make changes in case you want to.
+23:36
+Just one sec. I'm checking the shot again.
+24:00
+Okay. So um can we get confirmation that you can see the the Google doc file?
+24:09
+Um you have you have a couple
+24:15
+a couple uh comments stating that they cannot read it.
+24:21
+Okay. But and also also I know you want to to follow up but if we have like a
+24:26
+like a technical uh issue versioning or something that will have to be we can
+24:33
+discuss that uh later I I don't want to to be with but we need to to get bull
+24:38
+right and just let me confirm the yarn version that's the the one that I didn't
+24:44
+provide my yarn version is 4.10
+24:50
+so that is in case that is relevant. I will add it to the document
+24:56
+requisite is going to be John.
+25:02
+Okay. So,
+25:08
+okay. And and I can see a lot of people can access this the document. So, so
+25:15
+give it a a try. Try to re reload without cash or something similar.
+25:25
+Thank you. We got confirmation from from yarn 4.1.0 and it works. Definitely if
+25:33
+something doesn't work, it it is most likely versioning. Uh I can tell you this because we're running it right now
+25:40
+in in Mac OS. I used to run it daily on Windows is a completely different machine and I was able to run it here
+25:46
+without any any issues. So some somewhere there must be like a version
+25:53
+um incompatibility right. Okay let's let's go into the into the
+26:01
+structure of the project. This is the midnight NCP. We have repeated this many
+26:06
+time but it's important for us to know how it is built. So this one is built based on
+26:13
+um model context protocol. So this is the
+26:21
+um the base of the entire MCP project for for midnight. This is the base of
+26:28
+exposing it to a to any agent framework. From there we we have a lot of midnight
+26:34
+um of midnight dependencies and please take a note in case you are making some uh
+26:41
+broader development all of these are using uh version uh 2.0.2. too. That is
+26:48
+very very important because if not you might get some errors and smart contract
+26:53
+mismatch and even if you don't get mismatch you can try to broadcast and it's going to to complain something
+26:59
+about uh a typing that is typ script. So in the end it's not like the blockchain
+27:05
+is going to fail. Uh but typ script doesn't let it be broadcast. So when you
+27:10
+try to broadcast a transaction that's going to fail because typcript is doing some checking and it doesn't work. So
+27:16
+this is like the minimal version we have right now for this project to to be running.
+27:23
+Okay. We then we have a lot of other commands here. Uh so that's why we have
+27:28
+the the specific workshop document and also we have a a set of doc documentation files here which are very
+27:37
+very detailed about the entire project. Right. Um because we're we're running it
+27:42
+right now in that mode. You're going to be running like jar and dev but in the end the project does run on docker. So
+27:49
+for production models you will be doing setup docker instead of setup agent.
+27:54
+That's going to make a different set of conf configuration and a bit different of the results right is it's going to be
+28:04
+in a specific location and it's going to display the same uh explanation. So you
+28:10
+are always going to get your your notes in in your script. So there's nothing to worry about.
+28:17
+Okay. What else is relevant here? When we run the project, we are indeed at
+28:23
+that point we're starting a express server, right? While we made that
+28:29
+decision, we have express server because we need in case we need to to run the the wallet 247 that server can stay up
+28:37
+and it doesn't matter if you turn off the agent. You can turn off the agent without losing sync of the wallet. So we
+28:44
+decided to split it in between like a bridge which is the the NCP being
+28:49
+exposed and the core of midnight which is syncing the wallet and having access to the funds and and the rest of the of
+28:57
+the blockchain executions. Right? So jarn dev is going to start the express
+29:04
+server and then your agent for example ELISA is going to
+29:10
+call stdio standard input output server and this one is just like a middleware.
+29:17
+So Eliza is going to request uh what tools do you have to the STDIO? The SDIO
+29:23
+is going to reply I have balances I have send transaction. Then in case LA is a
+29:29
+request okay give me the balance of this token. This server is going to make an HTTP call to the express server. So if
+29:37
+we get into code the SDIO server is here. This is using the model context
+29:43
+protocol. Um we are creating a server here. We are using the agent ID. This
+29:49
+does uh this does uh take role in the the file storage locally. And from there
+29:56
+we are um exposing the tools. This one that we have here we're exposing the
+30:03
+tools that we have. So if we go to tools in here we have the
+30:08
+entire set of logic you are exposing of midnight to the agents. We have wallet
+30:15
+status, wallet address, wallet balance, uh send a transaction. Once you have sent we have multiple verification
+30:21
+mechanisms and we have the wallet config.
+30:26
+We have some other stuff that is not going to be present in the in the
+30:32
+workshop. Now we are going to talk about them uh later like a marketplace and some other stuff and we even have some
+30:39
+tools for the Dow. This is coming up tomorrow uh when we are going to be interacting with the DO right. So in
+30:45
+here we have all the tools everything that the agent can do in the V9 CP. So
+30:52
+when we get it once we get a call here you can see we have the like the middle wall here. All of this is the middle and
+31:00
+when we have a wallet status we're calling the express server wallet status
+31:06
+and the address and everything and even sending um even sending
+31:12
+um parameters right. So we have here wallet uh send uh list token and
+31:18
+whatever we have all of the all of the endpoint we have them here. So this is like the connection in between the Eliza
+31:27
+and the real midnight uh tooling right. Okay. So this is if this is the the
+31:34
+middleware where is the real midnight stuff right where is the wallet being created. Okay, that one is in server.
+31:40
+Server is exposing everything of the of the
+31:47
+midnight wallet, right? We have a lot of endpoints, the status, transaction, dow,
+31:53
+stuff, marketplace, stuff. Okay, we're going to leave that aside for now. And
+31:58
+to look deeper, we have the the the wallet here, right? So uh wallet is
+32:05
+syncing in keeping a local state of the wallet. Right? So we're in this case
+32:10
+we're getting into midnight details. Right? So this is spawning a wallet from
+32:18
+the midnight from the midnight SDK right from the
+32:24
+midnight. Yes, this is creating the wallet and it's storing a a backup locally and then when you close it and
+32:31
+open it again, you can restore that wallet and you can send transactions.
+32:37
+You can track the transaction. We have a logger. We have a a log file and we are
+32:42
+going to see all of that in a minute. But I wanted to leave you with the specific location. So um to summarize we
+32:50
+have the SDIO server the middleware for
+32:56
+uh a2 uh midnight then we have midnight server per se and into specific we have
+33:05
+the the wallet right and from there we have some other stuff like the
+33:11
+integration here this is going to be relevant for tomorrow DAO demo but for
+33:17
+That will be that will be that that is like the key the most relevant section
+33:23
+of the code. Okay, once again let me catch up with
+33:29
+the with the chat here.
+33:55
+Okay. So, I can see uh that yeah, I I want to add that um we're going to be
+34:02
+available once the the hackathon um time frame start. So, don't feel like um left
+34:10
+behind or rush, right? I know if something doesn't work right now, it can be frustrating, but we're going to work
+34:17
+through it. If it's not uh on today's uh workshop, then we might be able to do it
+34:23
+on on plan meetings the upcoming week and help you with the with the hackathon
+34:29
+uh development and hackathonations. Should the token be uh let me check to
+34:36
+confirm again.
+34:42
+as the one that I already added here. Yes, it's the one ending in 50 A B.
+35:00
+Okay, we we have we have a working working setup from from Stephanir and we
+35:08
+have an already sync wallet from uh Narayan. Uh my apologies if I if I
+35:15
+mispronounce it. Let me have a quick um water break.
+35:32
+All right. So, um I hope you're not using my seat, but don't want to have
+35:37
+any hiccups. And if you need tokens, I can send them
+35:42
+right away. Okay. So, we have already explained the the project. We have it set up and let's run it. then it is only
+35:50
+var this is because we already have the the EMV right so we have the the agent ID we
+35:57
+have it in the end if not that's why you would notice the
+36:02
+the JSON config does have the agent ID in the command this is because if you're
+36:08
+working from a different um directory
+36:13
+if this is the one of the best option to do it just do it in line if you have secrets Of course, that's not going to
+36:20
+be a good idea, but this is the the end uh configuration that we're going to use
+36:25
+for now. We're going to be running the command. I miss to show you the sync
+36:31
+process. So, it started with um some relevant notes here. So, it started for
+36:37
+3000. Then it's saying I have no doubt configuration. I do have a token. So, it
+36:43
+is going to add it. Tokens are added and then persisted. So when you reboot it's
+36:48
+not going to add it again, right? It's just going to be one single time
+36:53
+and you can add uh you can add multiple tokens. So I think we're we're using
+36:59
+right now token one and that's fine. You can add up to five this this way and
+37:05
+there is other way uh explaining the dots which is tokens without number but you then have to use a separator here.
+37:12
+You have to use a pipe in order to separate it. uh but that's that's not um
+37:19
+not what we are doing right now. So, we're working with a single token and it was added. Then it start to sync the the
+37:26
+wallet and it's even letting you know where it is store in case you want to do a manual backup, right? You might have a
+37:32
+project and then you want to rebuild some stuff but you you don't want to
+37:37
+redo the the wallet thing, you can just go copy copy paste the the midnight
+37:43
+wallet. This is for the the midnight js, right? not not the rest
+37:50
+of the configuration. We have some transaction uh local DB and stuff all of that is you should not be copying it but
+37:57
+the wallet can be copied because this is like the standard backup of the wallet.
+38:03
+All right. So we're saying okay we have registered defund. Why is defund? So right now it is a funding token we're
+38:10
+going to be using in the DAO demo tomorrow. Then we can start seeing uh the wallet is sinking and we have a a
+38:17
+gap. gap meaning that uh the code knows that there is a difference in between
+38:23
+the tip of the blockchain and our side of the sync. So it's trying to catch up to the the of the blockchain and from
+38:31
+there it goes and when it's ready it's going to tell you wallet is fully sync
+38:36
+you have your address and you have your balance and also once again the location of the
+38:42
+store u backup.
+38:51
+All right. So, let's move into the liot with um
+38:58
+step eight. Okay. At this point, you have your midnight wallet. You have the
+39:03
+MCP working how we need to talk to it. And in fact, it's not not even us an
+39:09
+agent need to communicate with it. So, we're going to set up an ELISA agent.
+39:16
+Um as I say we're not going to get into much detail about starting the ELISA
+39:21
+agent because this can be done uh multiple ways there are multiple uh version of ELISA CLI and even that does
+39:30
+that does bring some some limitations because if you're doing uh one version
+39:37
+you cannot uh lightly update because they are doing constant uh development
+39:42
+and of course they are changing a lot the the interface and they have breaking
+39:48
+changes. So I would suggest once you pick a an AI
+39:53
+framework, pick a version and and lock it. You should not be updating a agent
+40:00
+uh in the middle of a of course you can have your upgrade cycle every couple uh
+40:06
+weeks or months. you can do an upgrade but most times that that I do upgrade it
+40:12
+ends up uh uh causing some little delays and you have to take that into account.
+40:17
+Okay. So uh in this case it's going to clone this. It is a public uh repo.
+40:23
+Again just confirm if you can access it or not. I already have Lysa OS
+40:28
+installed. So let's go. Okay. One one more mention is LISA is running on bond.
+40:34
+So make sure you have installed on but if you need bond version let's once again
+40:41
+check it out
+40:50
+and this is not to to to say that is like absolutely mandatory sometimes
+40:55
+you're able to run everything from from from
+41:01
+node and everything from uh bond on or from from yarn. But just to just to keep
+41:08
+in mind to keep in mind that you you might get into compatibility issues,
+41:16
+right? Okay. So this is clone. Let's clone it.
+41:26
+Okay. I'm looking at the time and I don't want to over complicate things. So this section of cloning the LISA uh
+41:33
+repo, I'm going to skip it and go into into the repo that I already have. So I
+41:41
+have it clone here
+41:47
+and let me see if I Okay, I have it already open, but let's
+41:53
+let's make sure it's the same one. Okay, this is the one that I said I cannot share the the because we have the open
+42:00
+AI thing there. And yeah, so I'm working
+42:06
+on the uh origin main branch. So this as soon
+42:12
+as you clone this is the correct branch. This doesn't need to change. And I only have modified my character example. Let
+42:20
+me also uh you can ignore this Elisa backup but I'm just cleaning up the uh
+42:25
+agent database because when you run Eliza you get a database and you go back
+42:32
+you have the chat the history and all of that and I want to I want to do clean.
+42:37
+So I made it back up once and now we are here. Okay. So in here,
+42:45
+let me we clone we do bon install that is going to install the dependencies.
+42:53
+From there we're going to copy the base envai
+43:04
+key. In this case I'm using open AI. Of course, you can configure this to work with any other well not with any other
+43:10
+but with many other uh LLMs and even local LLMs if you have a local run. And
+43:18
+the main takeaways here is update the API key. That's one thing and secondly
+43:24
+update the this same project um
+43:31
+Eliza DB right. So I have here uh the the PG light
+43:38
+database there is a homepad to there sample right and we have in my case user
+43:46
+my username then my my project which is I mean my my directory for the entire
+43:52
+workshop then is this project and then you have the Eliza directory that we
+43:57
+have here on the on the docs on the files and then we have the Eliza inside
+44:03
+of Okay. So in case you want to do it, you just come to your to your working
+44:10
+directory. You can use uh pwdate your your main path and from there you add uh
+44:16
+elis uh you add elisa. Elisa. Those are the only two changes that I
+44:22
+made to my env. The API key for the LLM and the update for the database.
+44:31
+Okay. Now what is next? Um okay just a reminder here. Yeah you
+44:38
+copy the EMD and then you update the open AI and you update the directory for
+44:44
+the Eliza database. From there we run the agent.
+44:50
+Elisa OS start is not running one agent because as you can see we have not configured what is the name, what is the
+44:57
+purpose the the characteristic the character of the agent. So this is
+45:02
+starting the entire framework. Of course, this is going to uh be different
+45:08
+in in many cases if you're not using Elisa, right? But we are using Elisa. So we're going to use Elisa start. And this
+45:15
+is going to run the the entire framework in which you can run multiple.
+45:20
+Um one more thing is very important too is
+45:26
+that I did add one extra thing. I'm going to add it to the to the document and that
+45:34
+is the discord application and discord token.
+45:40
+These two um env are part of the changes
+45:45
+that I made. So for the sake of transparency I need to add them here.
+45:52
+Okay. So we have those two and we have the Discord um token
+46:02
+and we have the Discord application ID. These two you need to generate them on
+46:08
+Discord. You go to Discord, you go to the development portal, you sign in, you
+46:15
+accept being a developer and then you get your first application and you can
+46:20
+customize it. you start setting uh some permissions. Of course, it is a bot and
+46:26
+what it can do and not do on your server and then you generate a link so you can
+46:31
+link it to your Discord. Give me one sec here. Let me see if
+46:38
+Okay, we are we're ready. We don't have any new comments for now. So, let's
+46:43
+continue. As I was saying, uh we can we can
+46:51
+configure the agent to be connected to Discord. So we have it here. This is a
+46:58
+server that I created only for myself in which I added the the agent, right? This
+47:03
+is this is getting into into specifics, right? You can uh do permission for it to be a DM agent probably chat directly
+47:11
+with it. But I added I added it to the server because you might want to do a
+47:18
+community server, right? You might not have phones, but it can read some stuff. We're going to be looking at that
+47:24
+tomorrow when we check the DAO. It's going Dowo information is going to be public. So of course the pot can be in a
+47:30
+general channel or even in a specific channel but publicly available. One very
+47:36
+important thing is that we do not want to to connect to a public channel a but
+47:46
+with fonts right because then you can anyone can do the the command and is going to send out the fonts right in
+47:53
+this case this is a private server and that's why I'm using it. Okay. So this
+47:58
+is disco registering in handler. Everything is is ready. Okay. Elisa, how
+48:05
+do I start the the the agent? How how do I create the
+48:11
+the the agent? We're going to be using the Eliza interface here.
+48:16
+And in this case, I will delete this um
+48:22
+I will delete this agent. I will create a new agent
+48:29
+and I need to update something here because I changed the directory.
+48:38
+So it is now workshop
+48:46
+just to confirm. Let me go here and access that folder.
+48:57
+Let me do this workshop. Okay. And also I have the
+49:06
+server running. We have Eliza running. We have the character. This character is in the repository. I just have modified
+49:13
+the uh MCP. Remember that I said um on a step uh
+49:18
+seven or six. Check step six. we have the MCP server config. So you can copy
+49:25
+this entire um code of block and replace the MCP section
+49:32
+of Eliza. Uh I'm replacing everything because we only have one NCP, right? If not, then you'll be only adding the
+49:38
+midline NCP if you have multiple NCPs.
+49:43
+So the character is updated with the NCP. I go to LISA. We're going to create
+49:49
+the agent. So, we're going to import here and we're going to
+50:01
+we're going to the
+50:07
+See if we can get it here. Apologies if I may be brushed in Mac OS.
+50:23
+Okay. With the character example. Okay. Okay. So there
+50:31
+we have it imported. We have the the agent the description of it and it does
+50:37
+have the configuration for our SCP. So as soon as I click save this agent is going to be created
+50:44
+but it's not active yet. We need to initiate it here. And as soon as we initiate it there, we can go back into
+50:51
+the the LISA terminal and this one is um logging what the
+50:58
+agent did. So we have here C3PO is my agent. So it was registered and aside
+51:03
+from that, it also reads the the NCP. So it has uh it's reading 18 tools, right?
+51:09
+We're just going to be using a couple today. Um so it does have many tools and then
+51:17
+yeah so then now the agent is able to communicate to the
+51:24
+okay that is great now let's do a test uh I've been working with the agent
+51:30
+doing sending funs and debugging and stuff but now let's try to you don't
+51:36
+need to to to tag it some messages that I have done so don't have the the tag in
+51:44
+Please read the defund token balance.
+51:52
+I'm requesting the agent to read the token balance. At that point,
+51:57
+we are talking to Elisa. So, it's talking to C3PO in the Eliza framework
+52:04
+or any other AI agents you might have. Once again you can go to the terminal
+52:09
+and see all the thinking that the agent is doing because the agent think you
+52:15
+know it it make like rational um threats
+52:20
+you know. So the user requested these and I have access to these many tools and I can do x action. So we receive a
+52:28
+message um stating certain me I will retrieve the defund token balance for you and
+52:34
+then we have your token balances of 91 uh defund
+52:40
+all right I don't know if we have someone here that can share the address with me so I can send you some defund
+52:49
+probably I can see one person already have the
+52:54
+one sync so probably we can get the wallet address and that one is presented
+53:00
+in the in the terminal for the yarn dev of the
+53:05
+wallet NPC. You can see here an example how is your address or you can also
+53:10
+request your address through the agent right if you don't have discord set up uh you can do it here right in case you
+53:16
+go into into the the chat you can do um questions here directly you don't need
+53:22
+explicitly uh connection to discourse is just like an add-on for us to be able to see that
+53:30
+the agent is very versatile indeed
+53:36
+And if we don't have any any volunteers then I will use my test address which is
+53:41
+on the on the chair file. So I will be using this test address. I will send funds
+53:48
+there. Okay let's go into discord and
+53:54
+okay let's send I don't know let's do 91. to 13 defund to
+54:05
+this address. So right now we are requesting a transaction and I will show you
+54:12
+something very important because this one is going to reply that it's working on it
+54:18
+and then it's going to go to the MCP and
+54:23
+through the blockchain. So if we go into Docker, we have not forgotten about Docker. This is the proof server. So
+54:30
+right now this course send a message to the agent. The agent read the tools and
+54:39
+call for transaction. The midnight NCP is going to execute the transaction but
+54:45
+in order to do so it has to prove to generate proof of it. So we can see right here right now this is a new log.
+54:53
+So it's proving the transaction. It's proving that the transaction and
+54:59
+after a couple seconds we should see okay there we have it the transaction to send 13 defund tokens to this address
+55:07
+has been initiated successfully your transaction identifier is this and
+55:13
+yeah so we already sent through Discord through Eliza through the NCP funds to
+55:21
+this address. How cool is that? And you everything we
+55:28
+did is using natural language, right? So imagine if you if you have like a like an address book, you can just say, "Hey,
+55:35
+send this many tokens to to this guy, send this many tokens to Carlos, send
+55:40
+this many tokens to Michael, and it's going to be all done via natural language, right? So let's give it a
+55:47
+minute because um the ponds do take some some time when when we are making uh
+55:54
+transactions in in midnight uh the tokens are moved from the available
+55:59
+balance into a pending balance and then they get added back into the uh
+56:05
+available
+56:15
+that is correct. the question we have here about the the the model. Yeah, the
+56:23
+the engine that I'm using that I'm using personally in this demo is OpenAI, but
+56:31
+you can configure any other any other one. Even with Eliza, you can do Geminina, you can do uh Olama, you can
+56:39
+do local LLM, VMA. So yeah, we we are using Open AI for a demo. That's a
+56:46
+that's a convenience. you can do any any of the available um providers and even
+56:54
+you can you can even do something else not not Eliza but of course uh we we
+57:00
+have um we have a a great uh set of tools provided by
+57:06
+Eliza right they have the discord integration which you only do the two uh
+57:14
+specific uh tokens that I presented You only add you only add those two
+57:20
+tokens and it is connected automatically. So now yeah you can use
+57:25
+anything but we are using it because it is convenient. Okay. So let's see if we have an update
+57:32
+because we used to have 91 tokens. the list. Okay, can please
+57:41
+read the fun token balance again.
+57:52
+And once again, yeah, we can be uh natural. So we can request something like, hey, what's the what's the balance
+57:59
+after the the transaction, right? And all of that is going through the um
+58:06
+through the
+58:12
+through the language model. Okay. So we have a response. Please read
+58:17
+the default token balance again. It it first lets you know that it's working on it, right? So you don't get um nervous
+58:24
+or anxious about it. And then it's telling you your current balance of the funk is saying yay. So we have
+58:32
+configured the MCP with a wallet.
+58:38
+It can be a new wallet or it can be an existing wallet. From there we can only
+58:43
+utilize a repo. You can create your own. You can use other frameworks.
+58:50
+From there we added ENVS and connected to this group and we can chat with it,
+58:55
+see our balance and make transactions. Um we also have uh the native token. So
+59:05
+what about the native token balance? Because defund is a shielded token and
+59:11
+that is um for a specific purposes right but if we ask about the native token
+59:18
+balance that is going to tell you your gas balance basically how much do you have to pay for transaction even
+59:27
+if we know is is a is a it's an easy token what I mean by that
+59:34
+is that uh we're not going to be uh heavily reli relying on it, right? Uh
+59:41
+the intention is to use shielded token with your specific added value, but you
+59:46
+need the native token. We need dust, right? So if we ask about the native token, it's going to tell us uh I got
+59:53
+1,000 from the from the faucet. And even though I have been doing multiple tests, you can see here it's like uh eight
+1:00:01
+hours of of of testing sending transactions. Um, I still have 999
+1:00:08
+tokens. Okay, one set. And then we have another
+1:00:15
+water break.
+1:00:44
+Okay. So now let's get into the specifics specific about questions.
+1:00:51
+Uh now we can go back someone is having an issue we can confirm version of the
+1:00:58
+of the dependencies and even if you have like open questions about midnight open
+1:01:04
+questions about midnight JS um about the AI agents about the setup about the
+1:01:12
+hackathon right so
+1:01:18
+let's see if we have questions Thanks.
+1:02:13
+Okay, we have a great question. Can this be multi- account compatible? Yes, that is via Docker,
+1:02:20
+right? How would you do that? That's a great question also. Let's get back into the desktop. How would you do that?
+1:02:32
+Okay, first the MCP the MCP what we did we might not
+1:02:39
+uh you might not have noticed it but we're running locally. Locally means we have a storage uh folder. This is a
+1:02:49
+a non-committable uh folder, right? This is your personal
+1:02:54
+uh docs. In here we have the the locks. In case someone else miss something, you
+1:03:00
+can always come back here and this one is coming from the from the first time you put the the agent. Doesn't matter if
+1:03:08
+it turns off and on again. That's going to continue loging to the same file.
+1:03:13
+This one is in the storage logs and then the name of your of your agent.
+1:03:20
+We have seeds seeds and then we have our specific seed. Uh we have transactions
+1:03:27
+DV. This is in order to track um to track transactions
+1:03:32
+since we did uh um a shielded transactions that is stored uh somewhere
+1:03:39
+different. Okay. Um in here we have the the midnight wallet JSON. This is the
+1:03:46
+entire state of of the wallet. This is a huge file, right? So this continues to grow as you continue to use the the
+1:03:54
+wallet. Okay, so we're talking about multi- accounts. How will we do that?
+1:04:00
+It would not be feasible to do it locally. You can you can do it, right?
+1:04:06
+You can run this one and then run another one with a different EMV, right? In that case, you would not be using the
+1:04:13
+ENV here on on file the name of the
+1:04:18
+agent. You would not be using it here. You would be using it on command, right? So like um let me interrupt it now that
+1:04:25
+we have finished the the process. Okay, let me let me close it. I I have
+1:04:33
+closed Eliza at this point. The the website stop working and the connection
+1:04:38
+to the this channel is going to shut down in a a minute. Okay. And then we
+1:04:44
+can close the wallet. Okay. That way you will be running it
+1:04:49
+like um agent ID name you're in dev. You can open other
+1:04:56
+terminal agent ID uh um assistant agent
+1:05:02
+ID PR in multiple agents right and you will have to use the agent ID here and
+1:05:07
+that's going to um store your resulting files in a different location locally.
+1:05:13
+But the west the best way to do it is via docker. When you do the Docker setup, it's going to generate an agent
+1:05:20
+folder and it's going inside of that agent folder, you're going to get this
+1:05:27
+configuration of a docker compost. So, it's going to be using the agent ID
+1:05:33
+you you select and then it's going to to boot up a container. At that point, I
+1:05:42
+don't have anyone here. I can I can prepare um one for the upcoming workshop
+1:05:48
+in order to to demo you the that use case if we have time. But yeah, that
+1:05:54
+will be using Docker. So one Docker is going to be using X uh wallet. The
+1:06:00
+second Docker is going to be using a different wallet. What changes there? Um
+1:06:06
+we have the the port we have the port of the of the of the server. So you can
+1:06:12
+have one wallet running on four 3000 one on four 3001 and multiple wallets
+1:06:20
+right and that's the way to to do it because we are going to be uh splitting
+1:06:25
+each wallet per container that is the the best way and you can share the the
+1:06:30
+proof server right the proof server if if they are all those wallet are on the same VM then you can share the proof
+1:06:37
+server because at that point that you are inside of the VM you already have access to the to the keys, right? So,
+1:06:43
+there's no no limitation there. You only need one proof server to run multiple
+1:06:48
+wallets. But, of course, uh you have to think about concurrence. You know, if
+1:06:53
+you're making multiple requests at the same time, that's going to overload the proof server because generally proof uh
+1:06:59
+for midnight does consume some resources. So, when you're making the proof, the CPU consumption uh gets high.
+1:07:08
+So doing concurrent probe generation that would be something to to give it a
+1:07:14
+try. I wouldn't encourage to do multiple at once.
+1:07:30
+Yes, we have a Discord server. So, um, let me get the details for you
+1:07:39
+for you to be able to join and chat with us,
+1:07:45
+right? Of course, if you go into the into the hackathon section, you will be
+1:07:51
+able to um get up all of our needs, right? Let
+1:07:56
+me get the specifics we have right now.
+1:08:14
+Okay. So, let me I will be adding this to
+1:08:21
+description of the video so you can have access to our socials.
+1:08:32
+Okay, there we have the discord, we have the official website, we have the
+1:08:38
+LinkedIn and the hagata. Let me know if you can see the
+1:08:45
+the link and if not then I will send them via chat here too. I think that is
+1:08:52
+not possible. probably they don't want us to spam everything.
+1:09:01
+One sec. And now we're continue to ask question. One sec.
+1:09:09
+and sending the links via chat.
+1:09:31
+Let's continue formatting feature here.
+1:09:48
+Yeah, let me know if you can see the links and if they are available.
+1:09:53
+Um, okay. So, we have
+1:10:02
+Okay, we have another good question here. What is the point of Eliza OS? That is a good question. So for us to
+1:10:10
+understand the different working pieces
+1:10:15
+we want to integrate for midnight, right? So the midnight NCP is Midnight
+1:10:21
+blockchain logic, midnight JavaScript logic exposed to
+1:10:29
+NTP. NCP are in a specific what the AI agents understand. So at that point
+1:10:36
+midnight NCP is all the logic the wallet the syncing the transactions exposed to
+1:10:42
+any agent. You can connect it to whatever you want. We're using Eliza.
+1:10:48
+What is Elisa doing? Eliza is the website that I launched allow you to
+1:10:54
+create multiple agents and it has um
+1:11:00
+um features like allowing us to connect to Discord right you can use other
+1:11:06
+frameworks that's fine so yeah Eliza is the like the
+1:11:13
+communicator like it's going to take um listen to this bring it to
+1:11:20
+to its um logic then send it to the
+1:11:26
+provider of for example OpenAI or Gemini or
+1:11:32
+whatever other uh AI provider you're using get a response then um ask the
+1:11:40
+tooling like the entity what do we have here so it's like getting all the build building blocks so I have the message or
+1:11:48
+request. I check with the AI provider what what I have to do for sure. It says
+1:11:55
+check the tools. So it ask what tools do I have? So now I have the request the
+1:12:01
+tools and the the action which is coming from the AI provider and then it can
+1:12:08
+result into a decision making. Right? So the user requested to send fun.
+1:12:15
+What should I do? Check the tools. The tools does have send phone
+1:12:20
+functionality, right? And I have the data. So it sends send sends it to the to the open AI and OpenAI says, okay,
+1:12:28
+you the user wants you to send you have the tool and you have the data. Call this tool and send this data. Right? So
+1:12:35
+Eliza is basically doing all the handling the routing and everything.
+1:12:41
+But yeah, you can use other frameworks and and that's that's entirely up to you.
+1:12:49
+It's like Discord, right? We we use Discord as a as a demo purpose, but you can integrate it with some other tool.
+1:12:55
+You might want to do it with a Slack. You might want to do your own connection and and and talk to the um the uh HTTP
+1:13:04
+request, right? In fact, we're doing that in one of the of the of the test. Uh let me show it to
+1:13:12
+you. We have an integration test which is doing that.
+1:13:18
+So in here uh we have the integration test is running against the project uh
+1:13:23
+initiated and and loaded in docker. So this is testing like a real real
+1:13:28
+production deployment. And what this is doing
+1:13:34
+in order to generate messages, in order to talk to the AI, it does goes through
+1:13:41
+Eliza API, right? So, um,
+1:13:47
+let me see one sec. No, it's No, it's not that one. It's the integration that is the the end to end test. My
+1:13:54
+apologies. The end to end test. So, this one is sending chat messages. is testing
+1:14:00
+end to end because it's sending chat messages to to the AI agent, right? So, first it boot it boots the the agent and
+1:14:07
+then it it starts to wallet status, right? So, um see we have some skip test
+1:14:16
+there. Okay. To verify the balance, it's instructible. This is a pure function
+1:14:23
+to check the the wallet status. Okay. Here we're sending Elisa client. This is
+1:14:28
+an HTTP call to Eliza sending this message. So when we start this end to
+1:14:34
+end test, this is going to simulate a texting to the agent and the agent is
+1:14:39
+going to reply back. So yeah, what what is your your your end goal with the with
+1:14:48
+the agent that that is open to many many opportunities, right? can be discord can
+1:14:55
+be slack can be integration with WhatsApp I don't know
+1:15:01
+X Twitter right so so yeah Eliz is doing all the
+1:15:08
+routing and all the decision making uh using your AI provider right so you can
+1:15:14
+do other frameworks and you can also do other providers if you don't want or if
+1:15:20
+you already have a preferred provider
+1:15:25
+Okay. So, I think that is going to cover everything that we had for for today.
+1:15:33
+Let me confirm here.
+1:15:40
+Yeah, that's what we have for right now. And I want to to thank you all for the
+1:15:45
+time. Uh we have already shared the the links so you can join us at the
+1:15:51
+hackathon. We have the Dora hacks uh link. We have our our website dega.org
+1:15:57
+and you can join our discord too in which uh you will be assisted for
+1:16:04
+your setup and for the hackathon. We really really really
+1:16:10
+want to to to to bring you the attention of of the hackathon. is going to be
+1:16:16
+something really cool. We're going to be building cool stuff. You're going to be assisted. There is a nice a nice uh
+1:16:23
+prize for the for the third third place that's going to be $1,000.
+1:16:29
+Um second second place is going to be 2,000 and first place is going to be $5,000.
+1:16:35
+So definitely if you have the time and even if you're not into uh technical um
+1:16:43
+development you can still join you can uh make you can team up with someone else right because hackathons require
+1:16:50
+more than than programming they require uh someone to do product product
+1:16:56
+ownership you know uh design and also testing. So definitely don't feel
+1:17:02
+discouraged even if you're not on the tech side. You can join. We can help you find someone to team up with and you can
+1:17:09
+guys uh join the midnight in privacy focus development. Also as a summary I
+1:17:17
+want to reiterate we tested the token. What does it mean? Nobody knows who's
+1:17:22
+receiving the token. Nobody knows anything. Right? So that is um that is
+1:17:28
+the power of using uh midnight which is focus on the uh privacy. Tomorrow we are
+1:17:36
+going to be showcasing a a DAO a DAO demo right we're going to be setting up
+1:17:42
+a simple simple D contract. I mean the contract is going to be already set up.
+1:17:47
+We're going to demo it and we're going to look in depth of the contract logic on Friday. But tomorrow we're going to
+1:17:54
+demo the DO. are going to be able to generate a proposal, um, vote on a proposal, then close the the voting
+1:18:02
+period, and then be able to withdraw funds from the Dow only if the proposal
+1:18:07
+was approved. And yeah, all of that is going to be once again through Discord
+1:18:15
+um, and going into our main CP on the blockchain, a real world uh, example,
+1:18:22
+right? And on Friday, we're going to get deep into the smart contract which is um
+1:18:28
+is very very interesting that you can build with midline because in the end
+1:18:33
+data is not stored uh publicly, right? We are storing commitments. We're storing a proof that we know something,
+1:18:40
+a proof that we own something, but is protected by the fact that the data is
+1:18:47
+not public. It is not a permission things because you can do many privacy
+1:18:52
+focus contracts on many other blockchain. But uh that depends on who can decrypt the data, right? But
+1:19:00
+in midnight, the data is not there. It's already offiscated, right? So it's a
+1:19:06
+very interesting topic in case you're uh you are into privacy and we can do many
+1:19:11
+things like an example the DA we're going to be discussing the tally the boat count is public but nobody can can
+1:19:20
+link a voter to a vote. So if you participate, you cannot be linked to to
+1:19:27
+which vote did you did you uh did you send a positive or a negative vote that
+1:19:34
+is entirely offiscated and as I said it's not something that someone else with higher permission can view. It's
+1:19:40
+not something that can be cracked. It simply doesn't exist on the on the chain and is not obtainable. the data is not
+1:19:47
+there but your above does count and that is that is something very interesting for the upcoming uh upcoming days and
+1:19:55
+data privacy uh requirements right
+1:20:05
+all right so we have one more note here can you have a transcript for the next
+1:20:11
+session we're practicing review okay um I want to to to be very explicit. We
+1:20:18
+have the everything we did is on the document in terms of commands and steps in order.
+1:20:25
+So I'm going to this is public and we're
+1:20:30
+going to have uh one for tomorrow's workshop and one for Friday's too. And I
+1:20:36
+will check with the with the team if we can have like a like a prime screen of the entire um workshop.
+1:20:52
+All right. So, if we don't have any other technical question, I have to say has been a pleasure to be with you. It
+1:21:00
+has been a very um a very good time,
+1:21:05
+right? And if you have any question, you can you can prepare them for tomorrow if you have to think about it. you if you
+1:21:12
+think um you're going to give it a try probably you were not able to run it right now check the versioning um as I
+1:21:20
+said this is a clean environment you should be able to to to run it and in case you you were not able to u you can
+1:21:28
+join the the discord channel and we will be happy to assist you there
+1:21:34
+all right has been a pleasure I will leave you here with the with the
+1:21:39
+um with the outro couple minutes if you want to shout or copy links or anything
+1:21:45
+and in a couple minutes the stream is going to end. Thank you very much and I hope you ha
+Can you Okay, let me check if we can get back to the to the proper audio channel.
+1:33
+Hello. Okay, now we have audio. Okay, first of all, um I owe you an apology. I
+1:41
+I misclick. I did start the the streaming, but it was not live and I was
+1:46
+actually going through the initial uh intro for this workshop, but it was not
+1:52
+live. I was uh speaking alone. So, first of all, thank you for being here and my apologies on this uh misclick
+2:00
+misconfiguration of the of the streaming, right? Um okay. So um I don't
+2:06
+I don't want to delay since we already already are 10 minutes behind. So let's
+2:11
+get into uh the agenda we have for today.
+2:16
+So this is the second workshop. We're going to see how we can integrate in this case for privacy tools for web3
+2:23
+developers. We're going to be taking a look at the integration of the DAO. We
+2:28
+say we have a basic tow smart contract and we are going to be taking a look at the implementation of it in the midnight
+2:34
+NCP. We're going to dive a bit into the code. Uh we don't have that many
+2:40
+configurations to add. Uh so I have updated the the the
+2:46
+workshop document but is this is just a couple configurations couple ENVs and
+2:51
+from there uh we're going to see later the demo and finally get to the Q&A. Right. Okay. So I have to um go back to
+3:00
+the starting point I was repeating u I was um as I said doing the the intro
+3:06
+without you uh being able to to look at it. Right. Okay. So, let's go into
+3:13
+uh the midnight NCP. So, this is the uh midnight NCP
+3:22
+repository. Let me close this. As I said, I was explaining uh some stuff,
+3:28
+but so going back to the source of the midnight NCP
+3:34
+and just one sec, let me confirm this time. We're We're We're good.
+3:50
+Okay. Yeah, I think I have confirmation that we are good now. Okay. So, uh if we
+3:56
+go to the source of the midnight NCP, we we can do a quick summary of what we
+4:03
+saw yesterday, right? We have the the entry point from the AI agent that is the stdio server. This is exposing all
+4:10
+the tools that we have here all the tools and available functions. And this
+4:16
+one is calling via HTTP to the uh docker or the terminal server which is an
+4:23
+express server actually running the logic right. Okay.
+4:28
+So we did uh some wallet status, wallet balances, uh send transactions and
+4:35
+that's what that's most of what we did yesterday. Uh we we also did some token
+4:40
+specific function because uh sending is the the native uh dust and we also have
+4:49
+the the token send which is for the shielded tokens. Today we're going to take a look at the DAO. We have a couple
+4:56
+functions here. So let's get into how do we communicate with a D with a smart
+5:03
+contract, right? So when working on the midnight smart contract, we have a a
+5:09
+compilation, right? So when we compile the the final version of it, we can come
+5:14
+here to integrations and here we have two um smart contract that we are
+5:20
+working with. One is a DAO, the one we're going to take a look today, and the other one is marketplace. Um, we're
+5:27
+going to talk about that one tomorrow. Uh, we're not going to look uh deep into it, but we're going to just make a a
+5:34
+couple um a couple notes about it. So, today we're going to check the DAO
+5:40
+implementation. And in here we have um a clear division of of what is coming from
+5:48
+the compilation of this smart contract and what is actually developed here into
+5:54
+the uh minp. Everything that is inside contract has to be coming from the um compilation of
+6:01
+the smart contract. So we can see manage and and anyone that
+6:06
+has done some midnight development for smart contracts uh knows these u this
+6:14
+output right. So we have the compiler which is u the methods available the
+6:20
+secrets available inside of the smart contract and then we have the contract
+6:26
+um the contract definition the contract compilation for uh JavaScript right the
+6:32
+one we're going to be calling and from there we have the keys like to
+6:37
+prove and and verify the operations and other um another
+6:43
+compile um files, right? Okay. We also have here like the the index of the like
+6:50
+the pointer for the witness and for the actual contract uh JavaScript implementation.
+6:56
+Okay. So everything inside contract is coming from your build of the smart contract, right? Then we have um to make
+7:04
+some some API to communicate with it. And that's why we have here the API
+7:11
+file. Just take a quick look. Also in common we we have some typings um and some um
+7:21
+uh enums here. This is the one we're using for for voting. So we have types
+7:26
+and stuff that you want to reuse probably in multiple functions and index
+7:32
+is just like uh importing and reexporting everything from the API and
+7:38
+the common type. Okay. So what does a an implementation
+7:43
+looks like for the for an actual um contract interaction right?
+7:51
+Okay. In here we have to take into account something
+7:56
+uh relevant and that is typing. We have to be very careful with the
+8:02
+types because compact is expecting some specific types and we have to make sure
+8:07
+we're providing that uh the values in the appropriate uh type and pass the
+8:13
+validations and it's not even going I mean the code
+8:18
+could be um working in terms of blockchain and the proofs but script is
+8:26
+not going to allow it. if if you're doing some some type uh uh mismatch.
+8:32
+Okay. So in here we have a basic function for the for the padding. Padding is u we're basically using some
+8:40
+strings and a minimum number of bytes that we want to to pad. And from here we
+8:45
+get into the specifics right. So when working with a smart contract in midnight we have to take uh good care of
+8:53
+the private estate and the public estate. Public estate is what we can
+9:00
+find in the ledger of the smart contract and private estate is what we can find on our side of the application for for
+9:08
+example uh my keys are on the private state and if I do some let's say we do
+9:16
+some uh we post a message like the bulletin board if I post a message the
+9:21
+message is a public state property right because it's on the ledger and everyone
+9:26
+can see Okay. And on my side is my key. And on a different uh user, the public
+9:35
+value is shared across everyone. But the private value is individually uh managed
+9:40
+and handled. Okay. One sec. Catching up with the chat
+9:46
+in case we have anything relevant.
+9:57
+All right. Now we can continue. Okay. So yeah, we have to take good care of this state and have a clear clear knowledge
+10:04
+of what we are designing because we need to define a specifically this is an an
+10:12
+expressive design. This is going to be public. This is going to be private. Right?
+10:18
+and everything that we have on the on the private side, we are just posting
+10:23
+commitments or making proof of it. We're not uploading it. So, it's not even that
+10:28
+it is encrypted. As I said, I think near the end of yesterday uh workshop, if I have a secret value, that value is never
+10:36
+going to be on the on the blockchain. It's unidirectional um encoding in case of of of hatches or
+10:45
+uh encryptions, right? So I'm proving that I know something but it cannot be reversed into my original value. So all
+10:52
+of that is coming from the private estate and the public estate is what is disclosed to the ledger. And there are a
+11:00
+couple a couple key things there that even something that is on the on the
+11:07
+ledger it might not be exposed easily via the API but if it is on the ledger
+11:12
+it's readable. So it might take more effort or more time but it is readable
+11:18
+if it's uh posted on the ledger. Okay. So we start here by creating a a pro
+11:23
+provider. This is um relevant stuff that that I want to to do with the with the
+11:30
+contract and in this case um basically uh balancing a transaction and
+11:36
+submitting a transaction. Right. So um in here is the the config for the
+11:45
+states as I mentioned. So we have a private estate and we have a public estate
+11:52
+and we have to point to the um to the to
+11:58
+the keys because we have keys to to create proof and keys to verify proof.
+12:05
+So uh this is the pointer to where those files are located and as you can recall
+12:12
+those are inside of contract manage voting and we have keys here. So this
+12:17
+value is pointing to this um directory to the keys directory.
+12:25
+Okay. Um then we have the pro uh the provider.
+12:32
+This is pointing to our um proof server that is running locally.
+12:39
+Then we have the the wallet provider and the the node provider. Right? So all of
+12:46
+that is configuration. This is found uh across many many examples and of course this example is open source. So you can
+12:52
+go take a look um in case you you you need for details about it. Okay. So here
+12:59
+we start instantiating the the tow contract right it's an instance without still
+13:07
+knowing I mean it's a it's an instance of the core of the contract but it's still not the the exact contract because
+13:14
+we're not providing the address yet. So we are instantiating the D voting and we are adding the witness. witness is for
+13:21
+the private um private functions that we want to
+13:27
+present. So those are witnesses. In our case, we're not we're we're using uh
+13:34
+we're not using witnesses. So if we go back into the contract and we go into witness is an empty object. We we don't
+13:40
+have any witness uh circuit, right?
+13:47
+Okay. So that is there. And then I have a couple other uh functions because we
+13:54
+are bringing this from the CLI in which it was created and we have options to deploy a new contract, join an existing
+14:01
+contract. So in this side of the of the
+14:06
+code which is the the NCP we're only joining right. So technically deploying the DO should not be here but it's is
+14:13
+there. Um okay so this is how we actually join a contract right so we
+14:19
+have the provider and then we have the contract address and it's in this point that we use the find deploy contract
+14:27
+from the minjs contract right so this is going to help us um match
+14:33
+our contract address in our instance so here we have finally making a connection
+14:40
+um between the the case the the bare minimum of of the
+14:47
+contract and matching it with the with the address and therefore being able to
+14:52
+read the estate and get started um to to work with the smart contract right in
+15:00
+our case in this since this is a like a single use we're using an empty state to
+15:05
+so there's not there's nothing because this is like a discardable smart contract the one that we
+15:13
+Okay, we're we're going to overlook the deploy because we can take a deep look into that one uh tomorrow and tomorrow
+15:20
+is going to be very specific in uh the contract uh decisions that we had to
+15:26
+make for it u compiling building and
+15:32
+actually deploying the the contract. Okay, so what functions do we have?
+15:38
+Let's go back into contract and let let's go into compiler. In here we have
+15:45
+all the exposed uh circuit from the contract. So we can open an an election.
+15:51
+This is only taking an an ID. So this is just a name. But of course we can use an
+15:56
+anro and make a a a compose um
+16:01
+we can make a compose proposal. Right? So in this case is just give it a name and we can move forward with uh voting
+16:08
+and and funding is a separate uh function but you could theoretically uh
+16:15
+make a sing the proposal should be you know like the name the objective of it or even a single pointer to an uh URI.
+16:24
+So we can find the the content of the proposal somewhere else and we have there only the the pointer and the
+16:31
+amount of the of the proposal in this example is is set to a flat uh 100
+16:37
+tokens. So that is why we only need like the ID
+16:43
+from there. Uh we have close elections. This is um once you have voted you can
+16:50
+close the election since this is once again a simple contract we are doing that manually in in other instances it
+16:58
+can be triggered by by conditions right but yeah let's keep it simple here then
+17:04
+we have one of the of the bigger function this one is casting a boat so the d we decided to to use for
+17:13
+the example is using two shielded tokens. One is like the funding
+17:18
+representing a monetary value, right? And the other one is like the governance
+17:25
+token representing the ability to vote. So when casting a vote, we need to to
+17:33
+send uh what boat type are we using. This case is u
+17:39
+is a turnary. So we can send uh zero, one or or two. That's going to represent yes,
+17:47
+no, and absent or decline to participate. Right? So we have the the
+17:52
+coin type. This is the one using um for
+17:58
+this is the one we use to verify that the person does have the the the coins
+18:03
+and the coins need to be included. So they are being taken away from the user when you make the vote and that is um
+18:11
+going into into the contract right and technically then you you have to like
+18:19
+unlock them right this case we're just locking them and leaving them there because if not then the smart contract
+18:26
+will get bigger and and you know it's like expanding the the conditions. So
+18:33
+right now we are like um sending the tokens to the contract when we vote and we cannot get them back. These are the
+18:39
+Dow tokens. Okay. And
+18:44
+yeah that's what we do for casting a vote. Then we have funed treasury. This
+18:50
+is a a simple function in which we send the the flat 100 uh shielded token and
+18:57
+they are stored in the ledger and therefore this can be retrieved. Right? As I mentioned for the the previous one,
+19:03
+casting a a boat uh a boat would require us to create a a a storage of set of
+19:12
+funds and then be able to to claim it. Right? So this one the treasury is um
+19:20
+accepting the tokens and they are stored so they can be retrieved later. Then we
+19:27
+have payout payout approved uh proposal. This is the one taking the fund tokens and sending
+19:34
+them to the to the caller. And then we have a a console. This was uh purely for
+19:39
+testing purposes. We able to recruit the tokens without any conditions. No matter if if the proposal was approved or not,
+19:47
+um we can um reclaim the funding tokens.
+19:53
+All right. Everything is looking good. So let's
+19:59
+let's continue. Okay, so we have the contract and now going back to the implementation, right?
+20:06
+So I went there to discuss what parameters we need to send for each of these function and now we are here
+20:13
+looking at the implementation. Okay, so this uh for example open
+20:18
+election is receiving a the contract which is already instantiated from the
+20:25
+join contract right. So this is returning a deploy dow voting contract
+20:32
+and that is the one we send to make uh a function call. So we send the deploy D
+20:40
+voting contract and the value that we need to send to
+20:46
+the function. Right? This case is a simple string. The contract is accepting
+20:52
+a a string as the as the um election ID. So we can see we have a
+21:00
+couple couple things going on here. mainly is that we cannot 32 byt that is padding
+21:08
+the election id. So this function is running this uh pad logic here which is
+21:15
+creating a 32-bit uh array and then setting the bytes of the encoding for the string we use.
+21:25
+All right. Then when we want to close this is a simple function no parameters
+21:31
+and this is doing a of course this is like a pure function is hardcoded in a
+21:37
+smart contract and therefore it doesn't need any any parameters. In order to cast the vote we
+21:45
+need to send the the boat itself. Right? So we have once again the contract the proto type
+21:52
+and we have um a the coin info coin info once again this
+21:59
+is the DA governance. So for me to say yes, no or absent, I need to put the the
+22:08
+D governance token into the transaction that is going to be locked with the
+22:14
+purpose of not being able to vote transfer vote again. They they are
+22:19
+supposed to be like locked for the period of the time we're going to be running the election.
+22:27
+Okay. So in this case we have the
+22:32
+the num here right. So once we receive the the v type which is type from the
+22:38
+num we can then uh we're logging it for uh visibility purposes and then we're
+22:45
+casting the boat here. Uh once we get into into the actual parameter, we're sending
+22:52
+it as a begin, not as a as a as an integer, right? And the boat coin is
+23:00
+this is a a coin info, right? So we had to to do type uh omnition here. But it
+23:08
+is a coin info which is composed of of the coin color the nons.
+23:18
+So it can be then um stored in the smart contract.
+23:25
+All right. From here we get uh we're always returning the the public information that is the result of the
+23:32
+transaction which is the transaction hash and couple other values u
+23:39
+indicating if the transaction was successful or not. Fund treasury. Fund treasury is uh once
+23:45
+again requiring coin info. Why? Because this is a storing the funding token into
+23:51
+the contract. Right. Once again we receive the instantiated contract with the which is already paired with the
+23:58
+with the state and then we deposit uh the funding token here. Payout doesn't
+24:05
+require any parameter. So therefore we simple call payout proposal and it's
+24:10
+going to validate internally if we can withdraw or not. And cancel payout is um
+24:16
+a testing function doesn't require any parameters neither. Okay, then uh all of these are writing
+24:24
+functions. If you notice, we're calling functions and we're writing information to this my contract. Then we have to
+24:31
+read information from the contract. And that is where we use this um
+24:37
+uh ledger state, right? So for example, here we're using the get election
+24:43
+status. We want to return couple of values that are available in the in the ledger. So we get to call this get
+24:52
+voting ledger state and this is doing a validation of the
+24:58
+contract address and then calling the the the query contract state
+25:05
+from the indexer right the providers are have the connection internally for the indexer. So we can query the contract
+25:12
+state and once we have the contract state we can uh initiate it inside of
+25:17
+the D body. It does have the structure of the lead of the ledger. So we can get the contract estate that data and that's
+25:24
+going to organize everything neat and easy to read for us.
+25:30
+So um here get election status. Once we do that we have the state and inside of it we have um all the ledger right? So
+25:38
+these are values from the ledger. Open election open is a boolean. Um then we
+25:43
+have election ID. This is um
+25:48
+the bytes we're turning it into hex. Probably we should be turning this into readable value because this this is
+25:55
+going to output a a hex and we send a string. Right? So this is
+26:00
+not properly uh readable yet for for a human. But the the value is the correct
+26:05
+value. Uh then we have the the yes vote, the no vote, the absent and the total
+26:10
+votes. Okay. And something similar with the with this other function. This is a
+26:17
+a broader state, right? This is displaying the entire state, not only
+26:23
+the election. Why? Because we have access to the tokens that are storing
+26:28
+the treasure. Right? This is useful for us to be able to see the if we have
+26:33
+deposited the funding for example or not. Okay. So you can see this is a 250
+26:42
+under 250 lines. You know it's a very simple implementation. Most of it is
+26:47
+logging. So in order to take the the compiled version of a contract and
+26:54
+implement it is is not a a a heavy task,
+26:59
+you know. Um and most of it is as I said just working with the correct typing
+27:07
+and sending the the appropriate uh the appropriate values, right?
+27:12
+Okay. So what actually can we do with the with the D?
+27:18
+I have this file and it's modified. I had to change a bit of the description here. This is very important. Uh this is
+27:25
+coming from the side of the agent development, right? This is the MCP
+27:33
+configuration of the tools. And if you misconfigure something here or if you
+27:39
+add a a vague description or something, this might cause the AI agent not a not
+27:46
+to be able to call or execute this this logic. So in here we had a a a string.
+27:54
+It was repeated across all the all the function and it was stating that the configuration of the DAO is coming from
+28:01
+ENV from the environment variables and that alone was enough to detour the
+28:08
+agent from calling this function because probably thought uh that everything regarding configurations and ENV is not
+28:15
+something that um the agent should be calling and therefore none of this function was working from the Twitter uh
+28:22
+from the discord uh client. Right. So if you have any any issues
+28:27
+like um I cannot help you with sending funds, I cannot help you with um
+28:34
+with uh making this move in the battleship contract, right? I cannot help you with opening a a DAO
+28:43
+election. I cannot help you with uh voting in the DAO. Probably it has
+28:49
+nothing to do with the actual contract implementation. It can also be a a a
+28:55
+misescription, something not correctly defined in the tools exposed to the
+29:00
+agent. So that is something to keep in mind. As an example here, let me let me
+29:05
+see if I can show you the
+29:10
+the chat that I had with the with the agent. Yeah.
+29:18
+Yeah. Let me show you the the chat that I had earlier today and it was basically
+29:24
+just refusing everything that I was trying to do with it. So I was requesting to open a an
+29:31
+election with with this the string and
+29:37
+it was just ignoring the the command. Right? You can see I requested to open
+29:42
+an election and it didn't even respond. Not even like I cannot do that. it simply did nothing. Then when I
+29:49
+requested this status, the status for some reason the status uh was readable,
+29:55
+right? But once again, let's do an an election and it didn't didn't reply. I
+30:01
+even tried to tag it and using some other wordings in case it was something like uh not being able to catch the
+30:07
+purpose of the of the task, but it was not that. It was the definition of the tool, right? As soon as I change it, it
+30:14
+worked. I said let's open a dow election with this u string and it instantly said
+30:20
+uh okay yeah let me do that and we and I have and I was able to see the transaction being proved in the in the
+30:28
+proof server and then I received like yeah the d election with this ID uh has
+30:33
+been open successfully and similarly with the status right so I
+30:38
+was able to read the status and then okay let's cast the boat and it works so
+30:44
+if you have something like the AI agent refusing to work with the tool. Probably
+30:49
+the tool description is not correct or not clear enough.
+30:55
+That is something something key.
+31:02
+Okay, I'm getting a couple messages about connections. Let
+31:07
+me let me know if if this is a stable or or if we should try to connect to other
+31:14
+network There.
+31:36
+Okay, I can see a couple messages. So, let me try to change network and be
+31:42
+right back. One second.
+31:52
+Okay, I got the the streaming confirmation, but it would be nice if I can get a
+31:58
+a comment confirmation.
+32:29
+Okay. So I get confirmation that we are we're good to continue. Once again my
+32:34
+apologies there probably some lag or something. Okay. So we we have seen the
+32:41
+the implementation detail right. So now let me clean my my setup. So we can give
+32:47
+a try live with you interacting with the agent
+32:53
+via Discord and getting the transactions on chain for the for the D. Right.
+33:00
+So, one second here.
+33:20
+Okay. So, back to the to the workshop file. As I said, uh we don't have that
+33:26
+much to do here because it was mostly on the on the implementation side of it.
+33:32
+But let's let's add the the DAO token. This is the DAO voting.
+33:39
+We don't we don't really need it to the implementation. The implementation is is working with it under the under the
+33:45
+hood. I I'm just going to add it there so we can we can see it in case of of uh
+33:51
+consulting the the balances and let's see if we can add the
+33:59
+the Dow itself. Okay.
+34:06
+Okay. So from yesterday we only added one line here which is the second token.
+34:12
+The first one is called funding defund and this second one is called DAO. Um I
+34:18
+name it DGO. It's super super important for me to say all of this naming is is
+34:24
+just here you know it's just local um it's just local definition. This is not
+34:29
+the contract uh name for it. How the contract works in order to find
+34:36
+a a a token is a combination of the smart
+34:42
+contract and this value here. This is the coin color. So you have to take the
+34:48
+coin color I mean the coin color is a is a result of the smart contract address and the the name that you give to it.
+34:58
+Right? So this is the name written in the smart contract plus the deployment
+35:03
+address. This is going to result in another hash uh hex uh I mean in in
+35:09
+another hex and that is the coin caller. So all this funding and defund and dow
+35:16
+and dg these are local names that I want to use in order to for me to be easy
+35:22
+to call these functions. Right? But onchain this is the contract address.
+35:27
+This is the contract name and the combination of them both is going to generate the contract color.
+35:34
+Okay. So I have the first one uh is the funding token. The second one is the governance token. Um
+35:41
+in this other DA value is specific for the implementation that I made. some
+35:50
+something very important to to to clear here is that um the tokens are working
+35:56
+on the native side of it. You know, shielded tokens are native to the
+36:02
+protocol. The DAO configuration is is strictly um made for my DAO. If you make another
+36:09
+contract, this is not going to work. you have to the develop your own uh
+36:15
+integration and implement the API and copy your smart contract files in order
+36:20
+to be able to interact with it. It's going to be very similar uh in terms of
+36:26
+of the basic you know getting the contract um state getting the witnesses
+36:32
+locating the deployment. So that is that is basic but the the outer layer of it
+36:38
+is going to change because you you would need to to tailor it for your contract.
+36:44
+So I want to leave that very clear doesn't mean that there is a native DA logic nothing like that. Okay, for DAO I
+36:52
+have a cleanly deployed DAO here and as I said this does depend on my specific
+36:58
+case. I need to to present the the
+37:04
+color of the funding token and the color of the governance token. So therefore I
+37:09
+need to place the contract addresses in a description what the DAO is doing.
+37:16
+Right? Okay. So we only added these two lines.
+37:22
+We're going to we don't need to to to build for config
+37:28
+but I did it just to be sure because I was editing the tool definitions. So
+37:34
+from there we do join dev that is going to start the the wallet. We can see this
+37:40
+is starting the wallet. It says it's he has found two
+37:45
+two shielded tokens and it's going to register one of them. the other one was already there and it found a DAO
+37:51
+configuration. So, it's going to be ready to work with that DAO uh
+37:56
+implementation that we made. We made sure that we are on the tip of the chain. So,
+38:07
+yeah, seems like it has already sync. And now let's go into the
+38:14
+into the agent. On the agent side, we don't have to do anything because we didn't add any other
+38:21
+MCP, right? We're still working with the same MCP. This is exactly how we left it
+38:26
+on the first workshop. This is pointing to the to the workshop uh version of the MCP.
+38:35
+And yeah, we don't need to change anything here. So, let's give the
+38:40
+a try here. We're going to load it.
+38:46
+And if you recall from yesterday, we can see here we have the Discord connection. So we should be able to see the agent
+38:54
+live here in the um in the channel.
+39:01
+Okay. So now let's
+39:07
+try to read the status of the of the of the token. Let's start with the
+39:13
+tokens and then we can do uh initiate a a an election uh cast a vote and read
+39:20
+the status of it. Okay. So let's do
+39:27
+check the balance of the fund. Defund is important here because we're going to um
+39:36
+hopefully we can extract the treasury funding which is not coming from this wallet. was set up by a different
+39:42
+wallet. So, we are going to see balance right now and it should increase near the end of the demo when we
+39:49
+extract the the balance.
+39:57
+Okay, that's weird. This one is not responding. Let's see what's going on here.
+40:08
+Okay, let's do a basic one.
+40:14
+What is the wallet status of the
+40:20
+MCP?
+40:41
+Okay, this is weird because this one is not not raining from the
+40:47
+from the wallet. Let's see here
+40:55
+what could be causing this behavior. And also as I said this is this has
+41:00
+something to do with the with the wording for the communication because uh up here you can see this uh when I
+41:07
+requested the to open an election it said that it was not able to do it but
+41:12
+at the same time it replied to me yeah I'm going to do this task and then it
+41:18
+worked uh without any intervention right so definitely let's give a a shape on
+41:26
+the definitions that we have here. Nothing is going on the wallet side.
+41:32
+And oh, I think I know what's going on. This is my fault.
+41:39
+This is my fault. So, I initiated the the ELISA framework,
+41:47
+but this agent per se C3PO is not active. Discord the discord integration
+41:54
+works across the board for all the all the agents. So that is something to keep in mind. Probably um some configuration
+42:02
+is needed in order to point for an specific agent. But in my case is is the
+42:08
+is the bot for the entire um for the entire ELISA. And of course uh
+42:16
+what you can do is just run a single bot that's going to to work. So, it is most likely um Eliza responding there
+42:23
+probably. So, let me turn on the um C3PO and let me turn off Eliza.
+42:32
+And now let's give it a try. Okay. So, let's do this.
+42:38
+Please check the wallets
+42:43
+for me.
+42:52
+Okay, let me take a a water break.
+43:09
+Okay. And there we got a response. So, in this case, my fault uh for not
+43:14
+turning on the agent. Of course, it's not going to reply because there was only communication open but
+43:20
+not a proper agent ready to to assist.
+43:27
+Okay. So, we check the status is the correct address. We have the native balance. Now, let's do the uh defund.
+43:38
+Please check the defund token
+43:43
+balance. Then we're going to check the the Dow governance uh balance. Then we're going
+43:50
+to open an election, cast a vote, um read the status of the DAO contract, and
+43:58
+close the election.
+44:05
+Yeah. And going back to the to the configuration here, remember I said uh that it replied that it was not able to
+44:12
+do it and then it did it. This was because Elisa was active at the same time. So Elisa said that it cannot do
+44:19
+anything but the C3PO was able to do it. So something to keep in mind um don't
+44:24
+run uh multiple agents on a on a single bot. That's that's going to cause this
+44:31
+double uh interaction. Okay. So here we have um checking the
+44:38
+balance. The balance of defund is 78. That's the same we left uh yesterday. So now let's request the now check the I
+44:48
+think it was the go. Let's double check that. Yeah,
+44:55
+the go token balance if we have because I'm I'm locking 500 uh tokens of of the
+45:02
+governance in order to be able to to vote.
+45:18
+And okay. Okay. Here I did I did something. I misconfigure the the token.
+45:26
+Let me check what did we added there.
+45:35
+Yeah, that's a okay. Yeah, I know what happened here. So, this is a a coding mistake. Um the
+45:43
+decimals is is avoiding the zero value, right? So,
+45:50
+it's not accepting it and that's fine. uh therefore it's uh replying to me as
+45:56
+as it is a as if it was a
+46:01
+a six decimal like the default like the D
+46:07
+that is using six decimal so it's trying to apply six decimal and I do have uh 500 uh tokens plus decimals that minus
+46:17
+the six decimal that is the the value that we're seeing there so uh let's Um
+46:23
+let's just skip over that because that is like uh formatting that is a formatting issue that is coming from the
+46:31
+uh rule for this value right so it should be able to accept zero it doesn't
+46:37
+if I change it to one it's going to say that I have 50 tokens so yeah that is something to keep in mind in in the
+46:44
+handling of it but this is does not affect the actual blockchain uh stuff
+46:50
+because blockchain is not using uh decimal blockchain is similar to to
+46:57
+Satoshi's on on Bitcoin, right? Which they are their own measure and actually
+47:03
+when you're doing any transaction under the hood, it only works with Satoshi's,
+47:08
+right? And in Ethereum, it does work with way everything that you do in
+47:13
+Ethereum in logic, it only works with way. You're not working with Ethereum.
+47:19
+So that is something similar. So this is only masking it and it's and the masking is not correct but it's it's not going
+47:27
+to affect I do have the 500 tokens that I need to to vote. Okay. So let's try to
+47:33
+read the status of the governance so we can see uh the contract is clean.
+47:40
+Please read the Dow status. Dow election status.
+47:50
+We should be seeing the election is off. We have zero votes and we have no fun.
+47:57
+Uh we should have funding that was already added. We should have funding of
+48:02
+100 tokens.
+48:12
+Okay. So here we have this is a a semantic representation of the contract
+48:18
+state, right? So we don't have any uh id. It's empty. We don't have any votes.
+48:23
+So the yes are zero, no are zero and absent are uh zero. Total vote is zero.
+48:31
+And the the funding is not represented here. But uh we don't need to to see it.
+48:38
+Okay. So now let's do open an election. Let's open a D election with
+48:48
+election ID deep one. This case I'm like da improvement proposal. It's just a a
+48:57
+value, right? And as I said, we could add something. You could add like a composite of of a of a value here like
+49:05
+let's open the deep one which is defined in yuri x right so you will do something
+49:12
+like one in yuri uh http
+49:18
+myite.com deep one so you have the proposal uh for
+49:24
+display somewhere or you can do it in IPFS right ipfs and it was UR I not UIR,
+49:33
+right? So basically like name it and give it a location where users can find
+49:38
+the the information for it and therefore make a
+49:44
+decision and then come to vote. But let's let's keep it simple here. This one doesn't
+49:50
+have it. So let's do open and double election with election ID1. And this
+49:55
+should be broadcasting a transaction. So we can see the timing here. Now I have the 3 3 p.m. It's going to make a new uh
+50:05
+proof. So we said open a new dction with ID deep one. Please hold
+50:12
+and we can see recently right here we have a request to prove the the
+50:18
+transaction and once it validates like the basic it goes for me to generating
+50:23
+the proof for the onchain transaction. So, in a couple
+50:30
+seconds, we should be able to get the response from the agent that was able to
+50:36
+open the election.
+50:42
+Okay, so the election with the ID the one has been successfully open. The transaction ID is this one and it was
+50:48
+included in the blog uh this height. Okay. So now let's try to see
+50:57
+the status again. I don't want to de delay
+51:02
+that much. So we're going to see the status uh one last time and then we're going to do the entire cycle and check
+51:09
+it only one time at the end. Even though checking the status is not
+51:15
+that much time consuming because it's not doing any broadcast not generating proof just reading the the ledger and
+51:21
+presenting it. Okay. So now we have an ID. What does this mean? This is coming from the from
+51:29
+the deep one. So this is the representation of of deep one dig proposal one and it's padded of of
+51:37
+course it is padded but yeah we should be converting this hex into a readable
+51:42
+value agree and therefore uh uh we will need to to add some like a masking in
+51:49
+the in the logic right we still have no no boat so
+51:56
+let's cast a boat Yes. And this is taking natural
+52:01
+language. I don't need to say let's cast zero. Let's cast one, two. So, we're
+52:06
+casting a vote. Yes. On the DAO
+52:12
+election
+52:18
+and this is going to generate proof again. So, this is um
+52:24
+a new call to the proof server.
+52:32
+Okay, so we said casting a yes vote because it does know and recognize that yes is the value we want to to cast and
+52:40
+it's working on it and yeah we can see 305 and we have here 305 the new request
+52:46
+going to generate proof send it to the blockchain and once you see the proof on the on the proof server we're most
+52:53
+likely going to succeed um most of the validation are already performed at that
+52:59
+time. So when when the proof server is working it is like 99% of the cases that
+53:05
+is going to work and there could be like something on the on the typescript
+53:11
+making it fail even the proof will uh work on the blockchain.
+53:17
+You can still get an error from typoscript prior to the broadcast but it's is very minimal the case of that.
+53:25
+Okay. Okay. So yeah, we have cast a yes vote. The transaction ID is this one and this is the bucket. Okay. Now let's
+53:32
+close the election. Let's close the
+53:38
+DAO election
+53:44
+and as I as I mentioned in the beginning it's a simple contract. So there are not
+53:49
+many restriction. You know you can see I'm the one opening it both and closing it. of course uh but in a final contract
+53:57
+uh you can have restrictions for it. We're going to to see how to apply um some of that in tomorrow's uh workshop.
+54:04
+For example, we're doing that for the funding token. The voting um token
+54:10
+everyone can can mint so they can vote. But the funding token is restricted to
+54:15
+the to the person that deployed the contract to the account that deployed the
+54:21
+contract. And we are going to be looking at that restrictions um tomorrow. Right.
+54:34
+So yeah, we can see one more uh proof generated at 306 and it should be should
+54:42
+be uh broadcasters to the volume. There we
+54:47
+have it was closed. We have the hash the hate. Now let's read the estate.
+54:54
+Let's read the DA election status.
+55:00
+The meantime, let me take a quick look at the
+55:11
+Okay. Yeah. Let's let's close this
+55:16
+this demo and then we can get into a bit of a summary and check some some
+55:21
+questions. Okay, so it does recognize still the the hex of the name. We have
+55:28
+one yes boat uh and no accents or no no
+55:33
+votes. So we have only one for yes, zero for no, zero for absent
+55:39
+and the status is is closed, right? It says uh right here the current election
+55:44
+is closed. So let's give it a try to um pay out.
+55:56
+I want to be a bit um descriptive in this case because
+56:03
+um a proposal.
+56:09
+Let's do the D pay proposal and let's see if it works.
+56:18
+We will be generating a new
+56:27
+a new proof for it. Right? So, this one is saying I'm working on it for you. And
+56:32
+we can see here 309 getting a new proof. So once again most likely going to work
+56:39
+once we start getting the proof is because the typ script already checked
+56:44
+the value already check the state uh it does like a dry run of your logic and if
+56:50
+you're capable to to perform the action you know uh prior to broadcasting the
+56:57
+prior to even generating the the proof right and in in some cases even if um
+57:04
+even if the hyperscript doesn't catch the the the
+57:09
+issue with the state or the validation the proof is going to do it. So once the proof is started we have like a lot of
+57:17
+certainty and once it is created we have even more certainty and finally this is
+57:23
+broadcasted. So the D payout proposal have been successfully executed with the
+57:28
+ID and we have the block. So if we check back uh up here we have the balance of the
+57:37
+DGO for now now for for me dup should be zero and def should be
+57:44
+um I think it will be like 88 because we're using one decimal just for demo
+57:49
+purposes. Okay. So now let's request
+57:54
+check the defund
+58:00
+token balance. We should be getting like 88 value or something like that.
+58:07
+And then we're going to check the dup that we uh have extracted by voting part
+58:13
+of the of the governance which is the entire that I have.
+58:20
+Okay. Yeah. defund token balance is 88. So we have um substracted
+58:27
+the funding token from the DO because it was approved. If if it was not approved, I would not have been able to do it. And
+58:35
+you you would need to implement like logic to be able for the for the
+58:42
+the funding to be you know like uh restated where where it was coming from
+58:47
+in the final production ready. Okay. Now let's do one more like the DG sh
+58:58
+token balance. This one should be zero. And from there we can do some summary of
+59:03
+what we can implement with this type of of contract
+59:09
+and integrations.
+59:18
+Okay, your D go token balance is zero. So I consume my 500 tokens of of
+59:24
+governance to cast the vote. As I said, technically you can add a an unlock uh
+59:30
+feature. So when the election is closed, I can then go and reclaim my my my tokens. But that's that was left out of
+59:38
+this scope, right? As you can see, we already have we have made like a transaction here. So this is uh a very
+59:44
+very good example of a progressive uh interaction with the with the agent.
+59:51
+Okay. So now let's take a sip of water. One second.
+1:00:12
+All right. So, if we can make like a summary, we have the midnight NCP, right? We have
+1:00:21
+the n the native um logic for it. Checking your balance, checking your
+1:00:27
+status, making the backup of the state. So, we can boot up past the on on on
+1:00:33
+subsequent boots. uh you can run it on a docker,
+1:00:38
+you can run multiples of them inside multiple dockers and um all the native
+1:00:47
+logic is there. For example, um uh native token transaction and checking
+1:00:54
+balance and shielded tokens which are coming from the from the
+1:01:01
+um UTXO ledger. Those are there uh too. You can check balance you can make transactions and that is included as
+1:01:09
+part of the core for the main entpr
+1:01:16
+uh the smart contracts into it. You take the build that you receive from the smart smart contract and you
+1:01:23
+uh add it. In this case, we have the integration folder inside of inside of it. You can create m um more modules for
+1:01:30
+your smart contract and you have to make custom logic for it. You have to
+1:01:35
+instantiate the the contract uh make it join the the contract address. At that
+1:01:41
+point you can read the the public estate and you have set up the witnesses that
+1:01:47
+provide the private estate and then you can start working with the contract. For
+1:01:53
+example, we had like um seven functions. We initiated the we we had some
+1:02:00
+something like pre-made for it which was just two things made the deployment and add the funding token. That's the only
+1:02:07
+thing that that you didn't witness today and that's going to be available tomorrow. We're going to do a deep dive
+1:02:13
+into it because we have the CLI tool for it and that is uh a bit bit faster you
+1:02:20
+know you're not that part is not interacting with the AI agent but um as
+1:02:26
+I was saying so um we we create the the the contract with the
+1:02:34
+state public and private and at that point you can start sending uh commands
+1:02:39
+to it like the circuit that are exposed just make sure to send the proper type
+1:02:45
+of the value the contract is expecting. All of that is going to be validated in typescript. So um so don't be afraid to
+1:02:53
+think that um you have to to like to completely write everything from
+1:03:00
+scratch. The compilation does provide a a great great help with it because it
+1:03:05
+does generate uh the the JavaScript implementation. And
+1:03:11
+remember you can simply point uh AI development AI to the to the contract.
+1:03:18
+You can add the the source contract which is the compact one for reference. You can add the the output which is the
+1:03:25
+compile JavaScript contract. And you can even add the the DAO example we have or
+1:03:31
+you can um add some other example and and request hey can you create the API
+1:03:37
+for this contract and you can take a look at this other existing working API
+1:03:42
+and the AI is going to completely um create the the correct the proper base
+1:03:49
+for you to be able to work on it. And of course you need to tweak it. You need to double check. For example, uh once again
+1:03:56
+I need to reiterate on the types because uh even if you do it with AI might do
+1:04:02
+something like try to send uh arrays into into the compact and that is that
+1:04:10
+is not going to work because uh it does convert in a standard array into a buffer. Uh so yeah, there are some
+1:04:17
+considerations there, but uh you're going to get like 80% of the way and then you need to start working your way
+1:04:24
+tweaking in and just making sure all the functions work.
+1:04:30
+So um aside from from from that um I
+1:04:35
+don't know if we have any any questions today for the specific and if not we can
+1:04:41
+uh talk a bit about what other tools we can do for privacy development.
+1:05:24
+Okay. Um probably there are no no questions right now. So let's talk a bit about what
+1:05:32
+privacy tools means here because um we went over the steps but let me just show
+1:05:40
+you again uh what we mean about privacy. You know we went a bit too technical in the
+1:05:46
+beginning but this contract is a Dow right? What can we see publicly and what
+1:05:54
+is not public here? If we go back, the status was clean. No votes, just the
+1:06:02
+name of the proposal. We don't know who created the proposal.
+1:06:09
+We have funding. We have uh funds already inside the contract. We don't know who sent those funds.
+1:06:17
+Okay. When we make a yes vote, we can see the tally increasing, right? So if
+1:06:24
+we if we ask like what is this state, it's going to tell you we have one yes vote. You don't know who voted yes.
+1:06:31
+So that's a privacy feature, right? We're voting for something, putting your
+1:06:36
+your money to to back the claim, but still nobody can track it to the person
+1:06:43
+actually casting the vote. So there is privacy in the votes being anonymous.
+1:06:50
+Not the vote count but the vote uh source is anonymous.
+1:06:56
+Then we're closing the election. Of course this does depend if you have some rule on it. If you are going to to wait
+1:07:03
+for a minimum of both XYZ, you know that's a smart contract logic. But when we close it then we're able to to read
+1:07:12
+once again the status and we can only see there is one vote. We cannot match
+1:07:18
+who vote for it. Also there is a a the
+1:07:23
+possibility for you to to add like uh who has already vote. I think it is
+1:07:30
+already included in the in the in the contract. This is not visible here. Of course, we are going to take a look at
+1:07:35
+it uh tomorrow, but inside the contract, you cannot vote multiple times, but no
+1:07:41
+one can see that it was you. It's a it's an offiscated uh reference of who who
+1:07:48
+you are. And if you were to cast another vote, yeah, it would cost you again the 500
+1:07:56
+token, but it will have to be from a different wallet. You cannot do it from the same wallet because you're marked as
+1:08:01
+already voted. And when we withdraw the funds, once again, privacy,
+1:08:08
+um, the transaction is shielded. We just know how much went off, but you don't
+1:08:13
+know where it was sent to. So, what is public?
+1:08:19
+The proposal name, treasury balance,
+1:08:25
+and boats. What is hidden? the creator of the proposal, the caster of each
+1:08:33
+vote. So, it's not identifiable who voted for approval or denial, and the
+1:08:40
+destination of the shielded token is um hidden, right?
+1:08:46
+And yeah, so definitely there's room for for a lot of stuff that can be done in
+1:08:52
+the in the side of of privacy privacy for for web 3, right? This is DAO is a
+1:08:59
+common example and it is a a good one, right? Uh because not not only could be
+1:09:05
+like Dow for for governance, but it could be like voting for for something um like in real world uh assets or
+1:09:12
+something similar and at that point uh being anonymous but be able to claim
+1:09:18
+your your vote is is relevant, you know, not be not be identified as being
+1:09:24
+inclined per one or the other decision. Okay, one sec. Let me catch up with the
+1:09:30
+chat here.
+1:09:48
+Oh, I feel sorry if if we had some uh technical
+1:09:55
+technical uh issues with YouTube. Yeah. And we got a question. Where do I do I
+1:10:02
+get the D contract address? Dial contract address is in the workshop
+1:10:08
+file. Okay, let me explain it a bit because it is there but it's not as
+1:10:13
+explicit. Okay. Uh the DGO
+1:10:18
+this is the token shielded token similar to the funding token we saw yesterday. This is not the DAO contract. This is
+1:10:24
+the polling token. The DAO contract address is this value. the first um
+1:10:33
+let me split it down here. So let's do comment D
+1:10:40
+contract alone. I'm going to do I'm going to paste it
+1:10:45
+here.
+1:10:57
+Okay, so there we have it. This is the Dow contract as it is right now. Uh this
+1:11:03
+as I said this is not a fully reusable contract. Why? Because the tokens the
+1:11:08
+funding tokens are burned into the state into the ledger and we are not updating
+1:11:14
+them. Right? But aside from from that the status right now is closed uh one
+1:11:19
+vote for yes and the name of the of the proposal. that value you should be able
+1:11:27
+to to read if you connect to this contract. If you have the code and you connect to this contract, you can request the status and it should be this
+1:11:34
+one that I received here which is um this name of the proposal one boat for
+1:11:41
+yes and the rest should be should be clean and you cannot reuse it because uh the
+1:11:49
+contract is not made for for that. you know, we we should be clearing the the
+1:11:55
+ledger if we're going to allow for a secondary collection and yeah, but in
+1:12:01
+deep uh the the deep of the definition for the contract, we're going to take a look at that uh tomorrow.
+1:12:14
+Okay. So, I think uh we don't have we don't have uh any more questions.
+1:12:20
+Um, okay. So, let's wrap it up. I want to once again I want to say thank to
+1:12:26
+thanks to everyone that that uh is present here. Also, uh my apologies for
+1:12:31
+being did uh for for being late. It was I misclick. I started broadcasting but didn't didn't go live. So, it was
+1:12:38
+sending the information to YouTube but as as a private private information was not uh visible to the public and I was
+1:12:46
+already doing the intro there. I was like like seven seven minutes in into the topic when I when I noticed I was
+1:12:53
+not uh live. My apologies there. And also I want to remind you we have uh
+1:12:59
+another workshop tomorrow. Tomorrow is going to be focused on a smart contract. We're going to clone the repository,
+1:13:06
+build the contracts and interact with them via CLI. Tomorrow we can play a bit more. probably we
+1:13:13
+could uh increase the the scope of the of the contract, right? We have the
+1:13:21
+we have the like a couple adjustment we could be making like clearing the estate
+1:13:26
+so we can uh make multiple uh voting multiple uh rounds of of proposals. So
+1:13:34
+yeah, tomorrow is going to be very exciting for smart contracts in specific. And I want to also remind you
+1:13:42
+of the hackathon. We have the hackathon the upcoming week. So we're going to have um
+1:13:50
+next week to develop a solution to participate in the in the hackathon. We're going to be sharing the the links
+1:13:56
+for the for the Dora hacks which which includes all the description and definition of the hackathon. But let me
+1:14:04
+remind you, there are good prices there. Uh, third place is going to be $1,000. Second place is going to be $2,000. And
+1:14:11
+first place is going to be $5,000. And is going to take place next week.
+1:14:18
+Also, you can join our Discord for the assistance for the hackathon, right? So
+1:14:24
+next week we're going to be participating in uh in assisting the um developers to be
+1:14:31
+able to to work and achieve uh goals for the hackathon. So don't feel afraid if
+1:14:37
+you might might be new to to midnight might be new to compact uh contracts.
+1:14:43
+We're going to have your your back on the discord channel. And also um
+1:14:50
+I will be posting all the links in the chat uh about now.
+1:14:55
+One sec. So we can have all of you get access to the information.
+1:15:12
+Yeah. And not to mention the hackathon is not only for for programmers you know if you're uh excited about privacy
+1:15:19
+excited about uh midnight you can come you can join form team or team up with
+1:15:26
+someone else and remember for a hackathon we need um product development
+1:15:31
+not only on code but also on on the on the product side of it and the the pitch
+1:15:39
+you know it does include a a a pitch So if you're uh good for uh presenting uh
+1:15:46
+clear the the statements and in fact you can join with someone else also a lot of
+1:15:53
+testing and and in and debugging needs to happen. So yeah every hands are
+1:16:00
+appreciated in a in a hackathon. Even if you don't have a developer by your side,
+1:16:05
+you can come. We can help you join someone else and you can team up to do something good looking, something
+1:16:12
+awesome in terms of privacy. Leverage the the midnight power for privacy and
+1:16:18
+of course uh the AI agents, right? So we're we're going to be on the on the bleeding edge. Privacy AI agents is
+1:16:26
+taking um is taking the next step here. Right here we have shared the Dora hacks
+1:16:34
+uh links. You can join our discord in order to to team up with someone else.
+1:16:39
+And without without further ado, I am happy to to present this uh workshop.
+1:16:45
+Tomorrow we have the final one and I will see you there. Thank you very much for your time. Hope you have a good day.
+
+Hello. Doing a simple test. One, two, three. Can you hear me? One, two, three.
+0:09
+Testing.
+0:15
+Face cam. Test. One, two, three. One, two, three.
+0:40
+All right. So, we're going to wait for the stream to begin.
+6:24
+Hello. Hello. Okay, let's get um started with the workshop we have prepared
+6:30
+today. Let me make this image a bit shorter so
+6:36
+we can read the title correctly.
+6:41
+All right. So, first of all, let me welcome you all again
+6:47
+to the workshop. This is the third workshop we have and we're going to be going over smart contract development
+6:53
+today. So, I'm going to take a look at the at the Dow example we we have and we
+7:00
+use um yesterday and also at the shield the token that's like a like a bonus but
+7:05
+that's going to allow us to understand a bit uh deeper into the into the
+7:11
+contracts and in a specific because uh on midline the purpose is to use um
+7:18
+shielded tokens right the the main purpose of the uh native token is to pay
+7:24
+for transactions not to be um used and transfer or hold as a as a monetary uh
+7:32
+value. Right? Okay. So from
+7:39
+from today the objective is to um set up the DAO smart contract um project that
+7:47
+is a a very uh simple project. We're going to clone it, configure it, and be
+7:52
+able to deploy a copy of a DAO of the simple DAO contract, right? And as as I
+7:59
+mentioned yesterday, the contract is a single single use. So, you cannot reuse it unless you make changes. But that's
+8:06
+that's fine. That's part of what we're going to cover today. We're going to deploy one, interact with it and take a
+8:12
+look at the code in compact language and also take a look at the uh API the implementation how it is being called
+8:20
+and how are uh parameters being sent to the contract.
+8:26
+All right. So, uh, in terms of the of the session, we're going to have like a like a 30 minute, uh, setup. Then we're
+8:34
+going to demo it, and then we're going to go into questions and answers.
+8:42
+All right. I want to remind you, we have the file, the the workshop file. It's a
+8:47
+single file. It's the same we've been using from day one. Um we added a bit of
+8:53
+content yesterday, a couple configurations and we added u a decent
+8:59
+amount of steps today which are very simple steps mainly cloning uh
+9:04
+installing dependencies and adding configurations. So,
+9:11
+um, yeah, go grab your your copy of the of the work file and we're going to start,
+9:20
+uh, going through it right now. So, one sec here because I do have to do a
+9:26
+couple mentions for requirements. So, let's just start going to the day three
+9:32
+smart contracts and let me try to do a screen here.
+9:38
+Okay, one sec. I don't know. Oh, I think it's I think it's frozen.
+9:45
+Yeah, let me let me
+9:51
+edit the the content here. Your video capture.
+9:59
+This one. This one. Uh, let's remove that one. Yeah.
+10:08
+My apologies. I think the
+10:17
+the capture device was logging. Yeah, it is capturing now.
+10:31
+Okay. Sorry for having to do this do this right now, but
+10:37
+things happens. So, let's put it center here.
+10:45
+Let me set it back.
+10:57
+Okay, there there we have it. Yeah. Okay. Uh now we're uh again in the
+11:02
+workshop file. So let's just start with the with the relevant mentions. In this
+11:08
+in this workshop we're going to be using uh smart contracts compiled by compact.
+11:13
+So compact has to be downloaded and installed. I do not have those uh steps
+11:18
+here because they are clearly defined in the
+11:24
+in the midnight documentation. Right? I just want to specify we're using version 0.24.0.
+11:32
+If you pick a different version, it's most likely not going to compile.
+11:38
+So yeah, you have to install this version. And that's like the the main requirement we
+11:46
+we have aside from from compact. Uh you can refer to the day one. Day one we
+11:52
+have node. We are still using none 22.15.1.
+11:57
+Now we're not going to be using Elisa today since we're focusing on the contracts. Docker, we're still using the
+12:04
+Docker um the Docker proof server. So definitely keep that one running. If you
+12:10
+are about to test the smart contract because we're going to make transaction every time we're making transactions on
+12:16
+on Midlight, we need to have the proof server up and running. uh it's still using the pro server
+12:22
+version 4.00 and we remain with yarn and and bun but
+12:28
+uh this time we're going to be using npm. So notice the is the only requirement for the contract uh
+12:35
+repository. Okay. So from there we have to go to the
+12:43
+repository and I think that is already public. So let's double check uh the
+12:51
+repository is public. Let me go to
+12:57
+this one here. This is the
+13:03
+contract. Oh, it's private. My apologies. Let me let me change the
+13:10
+visibility. One second. And it will be public.
+13:28
+One second. I need to publish the repository.
+13:45
+All right. So we have the repository is public now and we're going to be working
+13:50
+also that is a very important mention we're going to be working on the uh
+13:56
+future contract uh branch. So let me add that here.
+14:05
+Repository is going to be this one and branch is going to be future contracts.
+14:16
+Yeah. All right. So, yeah, you can clone and then go to feature contacts and we're
+14:24
+ready to get going.
+14:29
+Okay. But the the branch is included in this step. So, so you don't have to to
+14:35
+rough. So, let's start by cloning the the repo. Let's let's do this live with with you.
+14:42
+I'm not going to use I have an existing version of it, but let's do it again.
+14:49
+So, this is let's call it D
+14:58
+again similar to what we did yesterday.
+15:06
+Okay, we are down workshop and once we are inside we're going to open our
+15:11
+editor. We we we don't we don't specifically need it. I just prefer to do it this way and we're going to go
+15:17
+over the code anyway. So, we're going to
+15:22
+set out the branch
+15:29
+and we're going to do install. We're using mpm to install the dependency.
+15:35
+Once again, just to confirm, we have now 2251 and we're doing npm.
+15:49
+All right. From there, we're going to
+15:56
+Okay. We're going to go into contract. Let's let's do the entire setup first and then we're going to go see the the
+16:02
+files. Allow me one one second. There is a storm here. I need to close the the
+16:08
+window. One sec.
+16:58
+All
+17:11
+right, I'm back. Let me double check we have good audio
+17:18
+because we have a lot of noise here.
+17:24
+All
+17:36
+right. So, let's continue.
+17:42
+Let's continue. Apologies once again. Um,
+17:49
+we're going to do the full setup and then we're going to go over the code. So I'm going into contracts
+17:54
+and we're going to run um contract inside the contracts uh
+18:02
+directory. We don't need to do npm install because there are no no dependencies there.
+18:08
+If we go set there are no dependencies there. It's only using the external dependency coming from from compact.
+18:16
+So we can do run uh npm run compact and that's going to run uh compilation for
+18:22
+three um for three smart contract that's going to
+18:28
+do the two silver tokens and the and the dowo.
+18:37
+So as we can see first it started with the dowo token which is the governance that is only a single circuit. So it's
+18:45
+uh very fast to to build. Then is doing the Dow boating which is actually uh
+18:52
+working on the on the Dow spun. This is doing six uh circuits. That is why this
+18:57
+takes more time. Also uh you can see here is selecting
+19:03
+some some K uh values. This depends on the proof
+19:09
+that you need to generate. So when you're running compact the first time and you start compiling a a code that's
+19:18
+going to download the required uh K files, right, in order to generate the
+19:23
+the proof for set um circuit. So you can see simple simple circuits are using a a
+19:31
+lesser value and bigger circuits are are using a bigger value of K for this
+19:37
+knowledge proof.
+19:45
+Okay. So, let's continue with the
+19:51
+let's continue with the setup. We already have compiled the contract. Now,
+19:56
+we need to to build the contract. I think I
+20:02
+Okay. Yeah, this is a Facebook group.
+20:07
+Okay. Now we need to build the the code here. So we are still in contract and
+20:14
+we're going to do the endm run build and this is just going to move some
+20:19
+files from the autogenerated um the manage folder into the
+20:25
+distribution folder. So once that is done we can move into the CLI.
+20:35
+So we do uh we go uh back one folder and then we go into CLI and in here we need
+20:43
+to install dependencies. This is a single dependency. Um the
+20:50
+the contracts directory is defined as a dependency. You can see here we have the
+20:57
+midnight workshop dial contract that is the name of the contract the uh directory and that is the one being
+21:04
+summoned by the CLI. The CLI is summoning the the sibling the sibling
+21:11
+folder right. So we need to go uh npm install
+21:18
+and then we need to um do build
+21:25
+So in the CLI we run mpm run build to that is going to um to build a couple
+21:32
+things more mostly um type stuff and from there we are ready to run
+21:41
+the the code. Uh but prior to running it because running is actually the the
+21:48
+demo. Let's go and take a look because right now we can we can confirm that everything in the code um install and
+21:55
+compile without so we can take a a a good look at this point first uh and
+22:01
+then execute the demo. Okay. So what what do we have here in
+22:08
+terms of structure for the for the DA for the DA contracts? This is a a copy
+22:16
+of the um of the midnight counter example. So this is coming from the from
+22:22
+that uh repository and we have made some some changes. So um mainly focus on on
+22:30
+naming naming the the work the workspaces and the in the project.
+22:37
+Right. Also this is updated to use the latest version of my DS. The example was
+22:43
+coming from um 2.0.1 that was failing a typescript
+22:48
+validation. So we we needed to to upgrade to to this version.
+22:55
+Okay. In terms of code going directly into the contracts um the directory. Let
+23:03
+me go into source and in here we have a another contract. We are going to um
+23:09
+skip this one cuz this is for a marketplace a agent to agent
+23:15
+communication which we are going to to to go over a bit later in today's uh
+23:20
+also but for now let's let's focus on the DAO and we have here let's just
+23:26
+start by the by the shielded token okay so we have a a
+23:32
+D shielded token this is a very very simple smart contract
+23:38
+And this is this is a a mean function that allow us to create an UTXO of a
+23:47
+shield token. Right? So this is open to the to the public. Anyone can anyone
+23:53
+with the the contract address and of course the the API. So the ways to
+24:01
+communicate with the with the contract, everyone can call it and it's going to m them uh tokens.
+24:08
+In this case, we did it as a demo. So, was ming 1,00 tokens and it's ming it to
+24:14
+the uh to the wallet executing the transaction. That is why we don't need a
+24:20
+destination. So, we are using on public key, right? Okay. Things to keep in mind
+24:26
+here. If you would like like to make um your own silver token, you can simply
+24:33
+take this contract. And of course this is going to be very basic contract where this doesn't have like um uh many
+24:41
+validations and enforcements. And what we need to update here in case you
+24:48
+want to to use it that would be the name of the of the asset right this is
+24:54
+generating what is called uh as the coin color. It's coming from the name plus
+25:00
+the contract address and that does generate apoint holder which is the unique identifier of the deployment of
+25:07
+set coin name. So this one is called DEGA DA boat and
+25:15
+it's going to start with a with a
+25:20
+with a uh value for the nons and it's going to use a nons. This is the
+25:26
+recommended way to to do it. This is generating a nons for the UTXO and it is
+25:33
+important for the um for for the transaction handling. Right.
+25:40
+Okay. So uh if you need to you you would be uh updating the contract name and
+25:46
+from there uh we can use the on public key which is the uh wallet executing the
+25:51
+transaction or in other case you could um receive who's going to be receiving
+25:58
+the tokens and then call the the value here. uh something relevant to to
+26:05
+mention uh for example here we have the the asset that we're going to mint we're
+26:11
+talking now about the mint uh token function the mean token function is native from compact standard library and
+26:20
+it does accept here the the name we're um adding to the to the token then we
+26:26
+have the amount then we have the nons so I said this is
+26:32
+using the recommend standard way to do uh nons and then we have who's going to
+26:38
+receive the tokens and it's very explicit here. We're using
+26:44
+left of the uh person executing the transaction and the contract. We're
+26:49
+using the left uh selection of it and we are declaring the value here. In some
+26:55
+cases, if you're going to uh we're going to see that in in the other contract if you're making a
+27:02
+deposit that that would be right. So, we are selecting the contract and we will need to send the um the self value of
+27:09
+the contract that is present in the other uh example. All right. So, this is
+27:14
+as I said very simple and is minting 1,00 tokens to the person calling the
+27:21
+function. We have a similar code for the funding.
+27:27
+I decided to to make two of them just to to
+27:32
+add the definition that we can do, you know, like our custom logic in the NSA
+27:38
+contract. We're only what we're doing here is using the the native M. But aside from from that we can we can
+27:47
+add our custom logic to the to the contract. Right? So this one is doing
+27:57
+almost exactly the same but it but when I make the deployment I'm defining who
+28:03
+is the admin of this contract. So when I make the deployment I'm stating that um
+28:11
+the a a hash because we are off offiscating who is the real owner right so it's not publicly known who is the
+28:18
+owner but the value is stored on chain and it has to be verified in order to
+28:25
+bypass or not to bypass in order to fulfill the validation. So in deployment of the
+28:33
+funding token this is uh a contract made so only the deployer or the owner can m
+28:40
+tokens right so in deployment I'm stating a persistent hash and I'm selecting the hashes created from a
+28:47
+vector of two of an array of of two of by 32 so the first one is an identifier
+28:55
+this is also known as a do domain and you know technically can whatever this
+29:01
+is not any secret waring you can add whatever you want to add there um but
+29:07
+yeah in this case I'm adding admin uh hyphen mentor right and I'm stating
+29:13
+the person making the deployment is going to be included in this uh persistent hash so the private key is
+29:20
+needed in order to create the the proof that is going to match this validation
+29:29
+okay and I'm extracting the the bytes of the public key right so I'm not using the entire object using just the bytes
+29:37
+once again uh storing the public ledger because this is admin is storing the public ledger here we're storing a
+29:44
+representation or a representation of who's the the domain plus the byes but
+29:52
+is not attainable and you cannot reverse into knowing who is the admin from the
+29:58
+uh from the hashing So now going into the mint function
+30:03
+uh we are generating once again here the the admin hash or the intention of proving you are the admin and this is
+30:11
+running this circuit is running on the uh personal computer or the client
+30:18
+computer broadcasting the main transaction. So in case we do mint
+30:23
+um in our private estate we have our key our owner public key and it's going to
+30:29
+strike the bite and it's going to replicate this process. So only if I am the owner I will generate the same hash.
+30:37
+If not the hash is not going to be the same and therefore um the assertion
+30:43
+would fail and you would you would not be able to mint tokens.
+30:49
+From there everything is the same. We increase the counter and we evolve the
+30:54
+nons. Then we do the the amount. Once again the amount could be a a pattern of
+31:01
+the mint circuit also the the destination right in this case the sol
+31:08
+is also doing the minting for the own user making the transaction.
+31:16
+Okay. So this uh starts uh going into into the possibilities of of what can be
+31:23
+done you know like uh probably probably we can have hatches. It could be like a
+31:29
+permission permission minting. So the admin could generate a hatch uh in doing
+31:37
+a a bigger um a persistent hatch of a bigger vector, right? you could be using
+31:44
+um like a domain plus the m the admin um
+31:50
+the admin bytes plus the the receiver byes and at that point um
+31:57
+at that point you would be generating generating a a a permission m right of
+32:04
+course uh you have to look in into a specific of of the of the location for
+32:11
+the for the values because you can store the the admin here and then do a a a combine
+32:19
+combine hatch. So you're doing a persistent hatch of a hatch plus the public uh bytes plus the bytes of the of
+32:26
+the uh color. Right? So that is something to to um to get you going with
+32:33
+permission minting if um we can do some pseudo code pseudo code here. So this is
+32:39
+of course the the admin and the in the in the contract and then we could be
+32:44
+doing something like um variation admin hats
+32:52
+this would be like um persistent hatch and we will do
+33:04
+persistent hatch we do vector of two and Here we will be bytes also 32 and we
+33:14
+will do here instead of of doing a a path we
+33:20
+already have the the admin. So we could do admin admin hash and then
+33:28
+admin hash and then we keep with the owner public
+33:33
+uh bytes. No. So this will be like a permission hash. So
+33:38
+or or something similar because in here I mean we need to have the the the
+33:45
+admin uh uh uh assign a different value, right? Okay. So there is that. Now let's
+33:53
+go into D voting. Okay. D voting once again is a very
+34:00
+simple uh smart contract. Let's let me check if we have something
+34:06
+on the comments. No comments yet. Okay. So, now going into the into the Dow.
+34:11
+This is a simple DO and we are um this is a single uh runtime D because we're
+34:18
+not clearing the state when we complete the the process. Some values are left uh
+34:24
+in the in the ledger and therefore the contract is not reusable.
+34:31
+Okay. at the time of of deployment
+34:36
+or let's go over the the ledger first. We have a boolean to define if the election is open or not. Then we have an
+34:43
+election ID which is an identifier as I mentioned. This could be an a a
+34:50
+an arr include the name of the election or or a simple uh it can remain a a
+34:58
+simple uh a single value but probably pointing to the URI so people can go
+35:04
+into IPFS or go into a special website and be able to read what the proposal
+35:10
+is. Then we have a a tally. So this in is
+35:16
+this is including yes no and absent votes. Then we have a map to confirm the user
+35:22
+has not voted before. Only one boat can be can be sent from every from every
+35:30
+wallet. It doesn't matter if you have more more tokens in this design. You can vote only once. Some other way to do it
+35:37
+would be like a weighted like a weighted um vote but that is a different case.
+35:44
+Right? we decided to go with a minimum. So a minimum of 500 tokens allows you to
+35:49
+to vote and if you have more than that it doesn't matter you don't get more more votes. Then we have treasury
+35:56
+qualify uh coin info. This is the value that we have deposited in in
+36:04
+shielded tokens to the treasury. So treasury is a
+36:10
+is an object holding the the nons the coin color of the token we have
+36:15
+deposited and the amount that that was deposited into the contract.
+36:23
+Then we have a couple couple values here. Uh the seal um modifier is making
+36:30
+sure that this is uh immutable. So these two values cannot change. That that's what uh seal means. If we seal it then
+36:38
+these two values are not up updatable after uh construction
+36:45
+and then we have the total votes which is the total count of of the boats. When making a deployment of this D
+36:54
+we are setting up a couple values here. The most important being the colors of
+37:00
+the of the tokens. So we are doing the exact definition of of the
+37:07
+identifier for a token which is domain plus the address that is located at.
+37:14
+Okay. So we're doing a token type. This is the same way that it was um
+37:21
+created. The the naming here the domain has to be the one use on creation here.
+37:30
+Okay. So there we have the token type of the PAT 32 bytes uh DGA funding token
+37:36
+and we're adding the uh deployment address of the contract.
+37:42
+So first you will have to deploy the the two tokens and then you will need those values to be uh brought into into the
+37:49
+deployment of the DAO. So it's doing the same exactly the same for the Dow
+37:54
+governance doing the domain plus the deployment address.
+38:01
+Okay. From there let's go into a specific as I said this is a simple contract. Uh the election can be open by
+38:10
+anyone as long as there is no an an ongoing election right now. So uh
+38:17
+it has to be closed. the election open uh boolean has to be false. Then we do
+38:24
+disclose the ID. The ID is a set of bytes that we're sending to the contract.
+38:30
+We disclose them because they're going to be exposed in the ledger of the of the contract. And if you don't disclose
+38:37
+it, you cannot uh compile. So disclose is like the the
+38:45
+double check that you're sure you're intending to disclose this information right then we set uh election open to
+38:52
+true and we define the votes uh to zero
+38:58
+in in a workflow um make in a in a workflow
+39:04
+order we will have also to do uh fund treasury. So we go down here to the fun
+39:10
+treasury function and in here as I mentioned when we're making the call to
+39:15
+make a deposit we are sending the coin info. Coin info includes uh the
+39:23
+coin color and it includes the amount
+39:28
+and the nons that is going to be uh assigned in the
+39:34
+in the coin in the coin info. Okay. So we start by disclosing
+39:39
+as I said everything that everything that is going into the ledger has to be disclosed. So we disclose the coin info.
+39:47
+Then we receive this is the specific command for you to be able to grab the
+39:53
+coins and hold them in the contracts. If you don't receive the coins, you
+39:58
+cannot you are not really holding the the coins in the contract.
+40:05
+Here we're making an an assertion. We have the coin treasury color that is defined here in the construction. So if
+40:11
+we try to send some other token, it's not going to work because the coin color from the deposit has to be the thing
+40:20
+that we define here in the contract. So this is a validation to allow the treasury to be single single coin input.
+40:27
+You cannot uh do multiple unless you remove this condition.
+40:33
+Right? And as I said, we're using treasury. This is holding the current balance of the of the
+40:40
+DAO and we're writing the coin. Right coin is the the method to store this
+40:47
+receive coin into the um qualify coin info. This is the qualified coin info
+40:54
+type. And we're writing coins. Here is the receive coin already disclosed. So,
+40:59
+it's public and accessible. And as I mentioned, we are selecting the right of
+41:04
+the interaction in between the color and the contract.
+41:09
+So we're selecting the address of the self self uh kernel. Is the contract uh
+41:16
+address. All right. So if we have an election and
+41:22
+we have uh funds at this time, we could read the the ledger. the ledger. You can
+41:27
+see here we don't have um view functions the equivalent of view functions because
+41:34
+they are public in the ledger. All right. So that is why it's so important to to know that uh once something is
+41:42
+stored in the ledger it's publicly accessible and even if it's not uh exported that means it's not part of the
+41:49
+API of the contract but it it is still visible but it would not be easily
+41:56
+accessible because you would you wouldn't just query the state and and it being there but the data would be in the
+42:02
+in the public ledger and you could um read it and and and format it until you
+42:09
+find what you're looking for. So everything in the ledger is public. That's why when we need something like
+42:15
+the validation of the admin hash, we're storing a hash not the real value. We
+42:21
+cannot store the real uh value there because that would be like storing the the the
+42:26
+public key the private key in the ledger.
+42:32
+Okay. So at this point we will be casting a vote. So let's take a look at
+42:38
+the cast boat function. Castbo is receiving two two values.
+42:44
+First one being the the boat. Uh of course this is using a turnary condition
+42:49
+0 one and two. It's not using um a a string to define the the value that
+42:57
+is only um that is the the outer layer of the of the integration that is
+43:04
+converting the yes or no or absent into into numbers.
+43:10
+Okay. So we're doing a couple validations. First we're confirming that lection is open.
+43:17
+Also, we're confirming that we have uh a value equal or under two. So, we cannot
+43:23
+send other votes uh that are not valid.
+43:28
+And we're sending coins. Why we have coin info? We have coin info because we are once again we are doing a 500
+43:38
+minimum value to be able to vote. So this coin info is the da da uh voting um
+43:47
+token, right? So coin info has the the tokens that I need to be able to vote.
+43:55
+In here we repeat something similar to the treasure. We disclose the coins we
+44:00
+are receiving. Then we have um
+44:05
+to receive the coins that is accepting the coins into the into the contract
+44:11
+and then we do validations. We have the color so we can confirm it is the token
+44:17
+we specify a deployment that is the only one we're going to set for for voting.
+44:22
+And then we have the value. In this case we're using an explicit amount. It has
+44:28
+to be 500. It cannot be any other number. But there you can start uh working with uh rules in and conditions.
+44:40
+Okay. So from there we are doing here uh some hashing to be able to store who has
+44:47
+voted without revealing the vote. So this is something uh this is something
+44:54
+relevant for our case in uh working around the privacy right. So own public
+45:00
+key this is the key of the uh user casting the boat. So this is an end
+45:09
+user. So we can call here C swap uh public key. We're extracting the bytes
+45:15
+once again. And I'm doing this in order just to for it to be visible because you can directly call uh on public key bytes
+45:22
+and store it directly into the into the hash. We're doing this in order for us
+45:28
+to be clear where the values are coming from. So on public key then we struck
+45:33
+the bytes then we do a hatch. We are definitely not doing uh not
+45:40
+storing the the direct value into the to the ledger. And once again, hashes can
+45:47
+be a composite of a of a a vector, right? You can can do vector, you can add a a
+45:53
+domain to this and and everything. This is the the the speed route for it, right? Once we have
+46:01
+the hash, the hash is no longer um um linkable to the to the origin. So the
+46:09
+hash we can disclose and I have a store here as disclosed uh disclose uh swap
+46:16
+public key hash and at this point I can validate if it already exists in the has
+46:21
+voted has voted is a is a map. So we can already confirm if
+46:29
+this uh hatch is already a member of the map or not.
+46:36
+If it is not a member that means we can um add up the vote and then we can
+46:43
+insert the member as having voted. So if the member doesn't exist we
+46:50
+continue we disclose the the vote type. This is the the the value of zero one or
+46:56
+two defining if you are um agree denied or absent from the voting. And after
+47:04
+adding up the values for the vote, then we insert the the the member the person has
+47:13
+has not been included in the past, but now we're including the the hash as a true value in the has
+47:21
+voted. So next time you would fail to to pass this validation here.
+47:28
+All right. From there, what do we have? Okay. So we have seen three three
+47:34
+functions. Now let's take a look at the close election because after many people
+47:39
+has voted or even one there's no no rules against uh a minimum vote in here.
+47:46
+Um that that could be one of the of the conditions for the dial closing. Um a
+47:53
+minimum of x amount of of votes. But right right now uh we don't have any
+47:58
+condition aside from the election be being open. So we when we close the election, we
+48:07
+check if it is open. We set it to to false and then we add up all the all the
+48:13
+total votes. Okay. And after the election being
+48:19
+closed, then we have only two two other functions. One is a testing function. As
+48:24
+I said, this is for me to be able to withdraw the funds without any condition. So no matter what, at the end
+48:30
+of of my test, I was able to claim back the the tokens, but this is not a a real
+48:36
+use case. Um so let's take a look at the uh payout approved proposal. In this
+48:43
+case, uh we're not receiving any parameters neither. We need to confirm that um the
+48:51
+election is closed, right? So the election has to be closed. And after
+48:56
+that we need to confirm that the no votes are uh less than
+49:02
+yes votes. So that means it is approved and at that point the treasury treasury
+49:08
+if we recall treasury is the qualify coin info and we're sending those tokens
+49:14
+that we received we're not making any changes to it. We we received them here. We're writing them to the contract and
+49:22
+down here we're sending them entirely in from the contract to the to the
+49:27
+transaction color. All right. So once again this time the contract is sending
+49:32
+to the end user. So um we're selecting left left being the contract color right
+49:39
+being the contract and we're making the the usage of the owner public key and
+49:45
+we're sending the treasury value and this would complete all the cycle we
+49:51
+have for the what else can be added here we can add u many things for example who
+49:57
+who's able to call this this function right if we put it uh to the through the
+50:05
+to the logic of generating a real DA, we would need some conditions to open an
+50:10
+election, right? Um some some protocols require some some funds. Why is because
+50:17
+you you don't want to be wasting time checking proposals that are not worth
+50:23
+it. So people has to put something the stake that the proposal is a real thing
+50:28
+and it's not u just distracting the community. So probably a condition here
+50:35
+uh to initiate the election from there uh when making the the
+50:43
+election uh defining who's going to receive the tokens even though it has to
+50:49
+be offiscated right so you will not define the public key directly into the
+50:54
+ledger you would do a hash the public key into the ledger and disclose some
+51:00
+some stuff like selecting at that time selecting I want to make um the proposal
+51:06
+as I mentioned in the beginning uh with a URI so we can point to a IPFS or a
+51:12
+website with the proposal but onchain we can add the the value that we want to get probably uh the value the value has
+51:20
+to be public right so you would store like okay I want to get 1,000 co uh
+51:26
+coins I want to get uh 1 million coins that will be public and uh we could add
+51:31
+like uh the hash the receiving or the
+51:37
+the the funds has to go to this address and that will be like a hash of the public key
+51:44
+and receiving the the coins in the end and some other conditions, right? Um,
+51:50
+when boating, something that can be added would be probably to add um
+51:56
+in a storage for these people to be able to get back their their coins because th
+52:01
+coins are I mean governance coins are supposed to be reusable and not burned.
+52:07
+So, um or it can even be done right here in in the end, right? So, we have received the coins here. We could uh
+52:14
+send them back right away. That would be something something to to to test and treasury treasury could be
+52:24
+reading the required funding for the specific election and
+52:29
+payout could be using the the hash valid validation right so anyone can call it
+52:35
+but only the person who knows the the destination address could generate the hash that we define in the in the open
+52:42
+election section. So if I said this X address generates the H hatch and then
+52:51
+uh only I can validate it because no one else uh knows how to generate the hatch and and yeah that way only the the
+53:00
+proper receptor of the coins can call the the payout and some other stuff like
+53:07
+emergency uh withdraws and and some other logic that can be can be added
+53:12
+there. Okay. So, we have seen uh contracts now and let's give it a let's
+53:17
+give it a try. Let's give it a try here.
+53:24
+After we have Eric, we can run this command.
+53:30
+Once again, I have here the pro server working.
+53:35
+Let's clear this terminal and let's do the CLI. CLI is
+53:43
+Um, this is like an assistive tool, right? This is not a a a native tool. This is a
+53:50
+set of code. So, you go into CLI. We have here the remote uh the remote
+53:58
+function we we are calling and this is calling run. Run is coming from CLI and CLI is
+54:06
+calling many other functions, right? Um this was generated from the counter
+54:14
+example. So the bases are the counter example. Then we added the marketplace
+54:20
+and then we added the DAO recently. So um
+54:26
+you can see here we have the DAO implementation and the the API is also calling some
+54:32
+marketplace functions and some DO some DAO functions, right? But once we start, we get asked first uh
+54:40
+do we want to generate fresh wallet or build from an existing seat. I'm going to select an existing seat because I
+54:46
+already added funds to this seat that I have here. Once again, hopefully no one
+54:53
+else has used the seat recently because it is public in the document. But let's
+54:58
+give it a try. Right now, this is doing the the wallet thing uh syncing. Um
+55:05
+this is not a store nor backup. So every time you run the tila you will have to
+55:11
+wait for the wallet to sync. It can store the
+55:18
+the state. So on the subsequent calls it will be faster but that is not developed
+55:23
+in the CLI. Right. Okay. So we have a couple options. We're
+55:29
+going to go with the with the two tokens first and then we're going to deploy a D
+55:34
+voting. So we can see we have a log of my balances and I only have the native
+55:39
+token uh dust. So let's do D shield token. We
+55:47
+select number two. In here I'm ask again if I want to deploy a new
+55:53
+contract or if I want to join an existing contract. This allow us to make new deployments or
+56:00
+if we are testing and for example we we are left without um DO governance token
+56:08
+we can come back and make more. So you can reuse contracts that you have already deployed in the past. So let's
+56:14
+deploy a new one right now. This is going to take like one to one to two minutes because as you can see right now
+56:20
+at 2:52 night my time it is started a a proof. So, he's going to make a
+56:25
+deployment. One sec. Let me take a water break Thank you.
+57:01
+and we're going to have time for the for the questions in in a minute right after
+57:06
+the demo. We're going to have some discussions. Okay, go back to the to the contract.
+57:14
+It was deployed. It was generated. The proof was generated here and then was
+57:20
+deployed. So we have the contract address. We can store this one. Um let's just do a new new file here.
+57:29
+And now uh at the same time I'm not only I have deployed and I'm ready to interact with it. So I don't have to go
+57:35
+back and and join the contractor. At the time of deployment I can interact directly with it. So as you can see in
+57:42
+the first log I don't have any coin but now I can do mint uh tokens. This is
+57:48
+going to mint now tokens to myself
+57:53
+and once again every single transaction is generating new proof. This is the entire logic behind uh midnight proving
+58:01
+uh with zero knowledge.
+58:06
+So let's give it a minute.
+58:50
+All right. So, we have the the mint.
+58:57
+We can see that we read the transaction and we read the block height and we have minted 1,000 D voting tokens. What we
+59:05
+can do right now is um I mean we can deflate the contract state but that doesn't have anything. So let's log the
+59:11
+token balance. That's number three. And there we can see my my wallet ledger
+59:19
+has nothing to do with the contract. This wallet this is the wallet um tokens
+59:24
+and the shield token. So the first one is the native the dust and the second one this is the coin color of the token
+59:33
+generated by the domain plus the deployment address.
+59:42
+So you can see the contract was deployed here and it's sending in 4084. That's not the same value we have here. The
+59:48
+token for for the sake of of understanding the
+59:54
+token ID is not the contract deployment address. Contract deployment address is
+1:00:02
+just that the location of the ad of the contract. But the token is called coin
+1:00:10
+color is created by the domain plus the
+1:00:15
+contract address. All right. So now we can I mean I I
+1:00:21
+could send tokens to someone else or or anything, but we're not going to to test that. Let's do a deployment of the
+1:00:28
+funding funding token, which is very similar.
+1:00:34
+Very similar, but the funding only allows uh the deployer to to mint. So let's give it a minute.
+1:01:24
+Okay. So, we have deployed the funded in this in this
+1:01:30
+contract. We're going to mint also the the 10,00 tokens. And then we're going
+1:01:36
+to see our ledger have uh three balances instead of two. And then we will be able
+1:01:44
+to deploy the DAO and make uh a boat and and see the the reflection of the voting
+1:01:51
+tokens the minutes and also see when we find the contract that is going to take
+1:01:56
+some uh funding token from my from my balance. So I need to store the second address.
+1:02:03
+This is the funding. Let's let's give the names. This is
+1:02:10
+go And this is fun.
+1:02:17
+Okay. So I have uh the minting tokens. I have minted the funding tokens. Then I
+1:02:22
+go to number four. Go back to the main menu and I go into uh number four the
+1:02:28
+voting. In here I'm going to select number one which is deployment.
+1:02:33
+And this requesting the funding contract address. So funding is this one.
+1:02:40
+And then it's requesting the governance is this one. Why do we have these two inputs? Once again, if we go back to the
+1:02:47
+contracts, that is part of the constructor. So, we
+1:02:54
+need to send those two values in the deployment. And if we go into the CLI
+1:03:07
+here, we have a deploy. We're deploying deploy voting contract. So this is using the funding and the DAO um addresses
+1:03:16
+sending them as bites. This is something in case you want to to know how some
+1:03:24
+parameters are being sent. You can refer to the to the APIs. The APIs have some
+1:03:30
+example of sending um bytes and strings and some other stuff. So these are the
+1:03:37
+two uh the two arguments. Okay. So we go ahead and deploy the
+1:03:43
+voting contract. This does take some time is generating a proof and sending it to the blockchain.
+1:05:10
+All right. So now we have deployed the the DAO. Let me also copy the contract
+1:05:16
+address of DAO.
+1:05:22
+Okay. So now in here we have multiple options. uh most we have six function
+1:05:29
+and the other two are uh reading the the complete state of the conference another
+1:05:36
+one is reading only the election status so if we go into election status which is number seven we're going to see u
+1:05:44
+election is false election ID is uh zero and all the votes are zero if we go into
+1:05:50
+display current contract state that is important to us number
+1:05:56
+We can see some other or some extra information.
+1:06:02
+We're reading not only the election but also the coins store in the treasury. So
+1:06:07
+the treasury values initiated by zero and it doesn't have any color nor nons
+1:06:12
+and uh yeah we are reading the the coin color for the boat just just as a as a
+1:06:20
+confirmation for us in development. Okay. Now um let's do fund. Let's fund
+1:06:28
+the treasury. This is going to take 100 uh coins from the funding balance. So
+1:06:34
+let's do number four fun treasury and it's going to request me the funding
+1:06:39
+address. Once again this is uh the way we did it in the CLI but you can like
+1:06:45
+automate so it doesn't require that many inputs. uh probably do a single run when
+1:06:52
+you deploy something is stored in the memory and there and then when needed it can be pulled automatically instead of
+1:06:58
+having to input the value. Uh again I did it this way because I needed to the
+1:07:05
+reassurance that I'm using the proper value
+1:07:31
+I do think that today we're going to use the the full two hours because we uh we
+1:07:36
+have a a very interesting question that we're going to to go over and I have to mention a couple other um modules that
+1:07:44
+we have in case you want to take a Okay, so we have added funds to the
+1:07:50
+treasury. Let's see if we check again the number six which is the entire state
+1:07:55
+plus the coin info. This is going to give us some more details right now. Now know we know we
+1:08:03
+have 100 funding tokens inside of the treasury and we can see the coin color
+1:08:10
+as well as the nons. The nums is a random number generated in order to have the uh in order to avoid coin collisions
+1:08:20
+and yeah this is representing the the coin info. If we go to the code that is
+1:08:26
+equivalent to the that is the treasury. Treasury is a coin
+1:08:33
+uh qualify coin info. This is this information here and it was written in the fund we we wrote to the treasury the
+1:08:43
+color I mean everything that is coming in the coin info which is color amount and nons. So these are the values that
+1:08:51
+we wrote there. Now we can let's let's start moving uh
+1:08:58
+faster. So we are going to open an election ID. uh this is uh accepting a
+1:09:06
+like any string value. So we're we're going to use DIP which stand for leg
+1:09:11
+improvement proposal number one and as I said at at that point you can add multiple uh
+1:09:18
+requirements not a single ID probably name um you are right for the entire
+1:09:24
+description how many fonts do you want to get um and who's going to be receiving the fonts after everything um
+1:09:32
+is approved
+1:09:42
+Okay. So, we have uh initiated the election. We can see on number seven, which is the election status. We can see
+1:09:49
+we already have an election ID. This could be readable. Right now, it's not.
+1:09:55
+Uh we're going to do some tweaking in the in the API in order to see if we can get it to be readable in a second. We
+1:10:01
+don't have any votes yet. So now let's uh let's cast a vote. We go to number three. Cast a vote. We're going to vote
+1:10:09
+for a yes. This is similar to what we did yesterday with the with the
+1:10:16
+discord client. So yesterday was automated. This is
+1:10:22
+already automated inside of the midline pin. So the API the code was built then
+1:10:28
+we we copy the implementation which is the API we copy the implementation to
+1:10:34
+the midnight MCP so the midnight NCP knows how to interact with the contract and we only need to provide the contract
+1:10:41
+uh the contract values for these three values here we added them to the configuration and that way we can call
+1:10:50
+this logic from the uh NCP
+1:11:09
+All right. So now we have voted yes. Let's read once again the election status. And we can see we have a name or
+1:11:17
+an ID for the election. Now we have a one vote to yes and yeah we can move
+1:11:25
+forward. Let's do uh let's close it. Let's close the
+1:11:31
+election and then we can withdraw the I mean prior to withdrawing funds I'm going back and I'm going to log the
+1:11:38
+balance and then we're coming back here to uh withdraw the funds.
+1:12:03
+All right. So now let's do exit. So I'm doing uh number nine. I'm going to go into Dow because that
+1:12:10
+one is the logic that has the the lock. I'm going into join. I will be joining
+1:12:17
+the governance. Now in the governance I can do log
+1:12:23
+balance. So I do number three. And there we have it. What do we have here? First one being the native coins that is the
+1:12:30
+dust. I have like 1,000 minus a couple uh units that I have used for for
+1:12:37
+transaction guys. Second one is the funding. It does have 900 uh tokens in
+1:12:44
+it because I minted 1,000 and I sent 100 to the funding. So the 100 are inside of
+1:12:50
+the contract right now. Uh and the last one is the governance. I minted 1,000
+1:12:56
+and my my single boat goes uh 500. So I have 500 left. Now let's do exit and
+1:13:04
+let's go back to four the D. Now we're going to join. So I'm selecting number two. I will be joining this Dow here.
+1:13:13
+Wait one sec. What is the Dow voting contract at?
+1:13:19
+Yeah. And then it's going to Yeah, I have access to the contract now. Let's do now display the current state.
+1:13:27
+We have one boat. Let's close it. So, let's do number five. This is the
+1:13:32
+payout.
+1:13:39
+And once we do the payout and I go back, we're going to see that I have 1,000 funding tokens because the funding I
+1:13:44
+sent into the contract, the proposal was approved and I was able to withdraw from
+1:13:50
+the contract.
+1:14:02
+Oh, something to to mention also now that I was able to call the payout. This is because the open is set to false.
+1:14:18
+All right. So, we have the transaction. Now, we can do once again the seven. The
+1:14:24
+election remains there. That's why I I said that this contract is a single use because we're not clearing the estate.
+1:14:30
+We can even see the full estate. We're not even clearing the the coin info, right? So the contract cannot be reused.
+1:14:39
+Let's go back into into the governance contract to be able
+1:14:45
+to log the balance and I'm doing number three. And now I have 1,000 tokens again
+1:14:51
+of the funded because we send 100 into into the DAO. We vote it with 500 of our
+1:14:57
+1,00 uh DAO governance. We approve it. Then we submitted the request to extract
+1:15:04
+the funding and we have received it back. So that would be the complete cycle
+1:15:11
+of the of the contract.
+1:15:17
+Okay. So now um that will be it for the demo. But
+1:15:23
+going back to the question, we have a question here. What are some non-obvious design decisions or architectural p
+1:15:29
+patterns that make agents more effective or efficient when deploying the MCP environment especially under realtime
+1:15:36
+condition? Okay, something important to keep in mind here is security. So let's
+1:15:42
+start with with that one. I have a couple bullets here. First one being security.
+1:15:48
+So the the way we set it up, right, we have the proof server. pro server is
+1:15:54
+intended to be to be personal. Why? Because you're sending your your keys there. Your keys are not leaving your
+1:16:02
+machine, but they are leaving your uh wallet and going into your proof server.
+1:16:07
+So, by no means uh use a public proof server that will
+1:16:13
+be basically fishing or scamming. And don't don't offer it neither, right?
+1:16:21
+uh everybody everybody running their wallet they need to have their own pro server that's number one number two we
+1:16:28
+define the the MCP is running in in my terminal or in my docker right
+1:16:36
+um but it's affecting any call from from local host so if I boot up the the agent
+1:16:43
+in my machine I'm not using any any API there is some some logic already there
+1:16:50
+to using an authentication key. So you can uh start looking into that or if you
+1:16:55
+need you can implement your own uh middleware to make a um authenticated
+1:17:01
+request or authorized request. But right now it is fully open. So if you call for
+1:17:07
+wallet status, wallet balance, send transactions, send tokens, the midn is
+1:17:13
+going to accept the request because it was designed to be in a closed environment in a closed and secure
+1:17:19
+environment. Okay. Aside from security, we also have
+1:17:25
+um a wallet gating wallet gating uh me
+1:17:31
+mechanism. Every single function that you want to call from the wallet is verifying that the wallet is in a proper
+1:17:37
+state to be able to to provide the the information or or perform the action.
+1:17:44
+This is with the intention to to prevent you from booting or doing a cold start
+1:17:50
+of the wallet and trying to make a transaction and the wallet having all their state or not being fully synced.
+1:18:00
+Also um let me check here resilience we do have
+1:18:06
+another mechanism because the wallet is connected to multiple to multiple uh
+1:18:11
+services is connected to the wallet is connected to to the
+1:18:17
+indexer and the wallet is connected to the node. So there might be some instances that the connection drops and
+1:18:24
+therefore we have a resilience mechanism that is attempting to reconnect every time we we fail it's going to attempt to
+1:18:31
+reconnect and all of that is uh being logged that is stored in the log file that I present in the in the workshop
+1:18:38
+one. So you can see all the attempts to reconnect there.
+1:18:46
+Okay. So, what else would I Okay, aside from that,
+1:18:53
+I would also recommend um item potency, meaning not trying to perform multiple
+1:19:00
+actions with the wallet at the same time. Once again, we're working with uh with a state here. So, um that also
+1:19:07
+affects not only the wallet and syncing in in Typescript or JavaScript, but also
+1:19:13
+the proof server. So if you try to send multiple requests that will have to be
+1:19:18
+like tested. I would recommend having a like a queue you know that is not implemented right now in the mid MCP but
+1:19:27
+it's a it's a good uh a good design observation to to have like a queue in order to
+1:19:34
+process task uh and not rush or or race condition with multiple operations at
+1:19:41
+the same time. even though midnight is is prepared to to work with with uh
+1:19:48
+multiple transactions that are not affecting the same u state right so if
+1:19:54
+you have multiple contracts and you're working with different tokens there should not be any issue but something to
+1:20:00
+to to keep in in mind due to the not only the blockchain processes but also
+1:20:06
+we need to take a look at the um and the runtime execution
+1:20:16
+Okay. So I think that's that's going to to cover uh the question we we have
+1:20:22
+here. So in terms of design patterns that would be making sure we have a good uh security making sure we are uh
+1:20:30
+properly checking the state and and startup of our entire system and like
+1:20:36
+wallet and proof server and state sync and lag behind the the blockchain t and
+1:20:45
+doing proper uh proper task or activities.
+1:20:52
+uh execution in the in the wallet.
+1:20:57
+All right. So, I don't know. Do we have any questions in regard to smart contracts?
+1:21:05
+I will give you a minute. In the meantime, uh we'll be talking a bit
+1:21:11
+about some other modules that we have. We do have the marketplace registry.
+1:21:17
+That is a a smart contract made to publicly
+1:21:23
+display what uh email you are connecting to for
+1:21:28
+a given wallet. Right? And that is used in the marketplace or agent to agent communication. It's another module. We
+1:21:36
+didn't cover it because it is uh I mean it's getting too too big. The the
+1:21:42
+information pool we have is is getting too too large. So the marketplace is
+1:21:50
+another MCP, right? Doesn't have anything to do with the wallet. It has I
+1:21:55
+mean it does interact with with the wallet, but what I mean is it doesn't have a wallet. It's communications only.
+1:22:02
+So the the agents to agent communication is a different MCP that allows an an
+1:22:09
+agent to communicate with other agent. It is using offchain uh communications
+1:22:14
+via superbase. So there is a project in Superbase. When you boot an agent and
+1:22:19
+the agent has to log in, it's going to request you to follow some steps via email. You're going to authenticate and
+1:22:26
+it's going to uh disclose to the community that the B is offering a
+1:22:34
+service. For example, you can have a bot offering uh curated content, curated summaries of pricing for for uh trading,
+1:22:43
+curated content for news or similar, right? So, you log in, all of that is
+1:22:48
+done via natural language speaking with the agent. So, you said like, hey, can we register on the on the marketplace?
+1:22:56
+And it's going to guide you through the steps doing that. And when you're logged in, you can say, okay, what services are
+1:23:02
+available? It's going to read you all the services available by other agents connected to the marketplace. And if if
+1:23:10
+there are um no services, you can register your your your service and then
+1:23:16
+um yeah define some conditions like how much do you want to charge for your
+1:23:22
+service and and what are your and what you're going to offer and all of that is stored in your machine and it's using
+1:23:29
+zero knowledge uh encryption. In case you have a private communication, you're
+1:23:34
+maybe offering a service and that's going to be private. Then you only disclose the the description and the
+1:23:40
+pricing and and the rest of the communication that being um the payments
+1:23:45
+and everything all of that is encrypted uh zero knowledge and uh end to end and
+1:23:51
+the agents communicate and pay each they are automated so they pay um each other
+1:23:58
+right. So if you said okay from the listed services I want to hire this service your agent is going to start
+1:24:05
+process and it's going to notify the other agent that hey I want to hire your your services going to send funds and
+1:24:11
+it's going to await for the response and once you have the uh you know you can
+1:24:16
+give it some some time that they are going to operate but in in a short period of of time probably like a couple
+1:24:23
+minutes due to the to the transaction proving in the in the proof server you
+1:24:28
+should be able to to say hey can you show me the data and the agent will have the data received from the other
+1:24:35
+offering services. So that code is is open source too and that is available and it's a working code and it does
+1:24:43
+connect with the with the agent and it does connect with the mid9P for a single purpose that is to confirm the contract
+1:24:50
+registration right so we know we're talking with the proper owner and we're sending funds to the correct uh address
+1:24:55
+right so there is a matching between the offchain uh registration and the onchain
+1:25:02
+smart contract and yeah aside Aside from from that that
+1:25:08
+that will be what what I have in terms of of modules and the workshop but I
+1:25:13
+really want to go go back again over the summary right
+1:25:19
+so we we took a look at the D smart contract we check the shielded tokens we
+1:25:25
+talk about um requirements and validations on on the contract and also
+1:25:32
+we went over the CLI how we can interact the contract make deployments and and
+1:25:37
+test from the CLI and from there we we have to remind you
+1:25:45
+that we we have the document right the follow-up document is going to remain public the repositories are public if
+1:25:53
+you have any any issues don't hesitate to join us at the at the discord channel and and request u assistance
+1:26:05
+So um I also have to remind you that um
+1:26:10
+this is the last workshop but it doesn't mean we are uh leaving you hanging dry
+1:26:16
+so you can join discord at any time and we can chat over there. Uh let me remind
+1:26:21
+you that we have the the hackathon coming uh next week that is from from Monday through
+1:26:29
+through the entire of the next week. you're going to be able to develop a solution for the hackathon and don't
+1:26:38
+hesitate to join uh Discord if you have any any question if you want to to team up with some someone else. Yeah, you can
+1:26:45
+join the community and start uh asking around if you someone is needing a a
+1:26:52
+person an extra assistance for the hackathon. Right, let me remind you we
+1:26:57
+have a great prices there. The third place is $1,000. Second place is $2,000
+1:27:02
+and the first place is $5,000 and you have the entire uh next week for the
+1:27:08
+hackathon and of course our assistance and our uh communications in discord.
+1:27:14
+So that will be it for for today workshop. I will um I will leave the the
+1:27:21
+the outro and then uh hopefully we can chat in discord the upcoming week. Have
+1:27:28
+a good day.
+
+Workshop - Buidling AI Agents With Midnight SDK
+Overview
+Set up the Midnight MCP environment for Workshop 1, install dependencies, run tests, build the project, and configure a local agent.
+Requirements
+Node.js 22.15.1 or higher
+ElizaOS 1.5.9
+Docker
+Midnight Proof Server v4.0.0
+Yarn 4.1.0
+Bun 1.1.20
+Ensure the exact Node.js version is available via nvm to avoid build inconsistencies.
+Repository
+Repo: git@github.com:DEGAorg/midnight-mcp.git
+Branch: workshop
+Setup Steps
+Clone the repository
+
+
+git clone git@github.com:DEGAorg/midnight-mcp.git
+cd midnight-mcp
+
+Switch to the workshop branch
+
+
+git checkout workshop
+
+Install dependencies
+
+
+yarn install
+
+Build the project
+
+
+yarn build
+
+Set up a new agent for local development
+
+
+yarn setup-agent -a workshop
+# yarn setup-agent -a workshop -s "b4d040c5080f0f123b9cb879fedf9f513eb9f50292380c7f0897c94a5ee79b94"
+
+Save the generated seed and update MCP server config
+
+
+Save the seed in a secure location.
+Copy the MCP server config into the appropriate agent configuration.
+Treat the seed and credentials as secrets. Do not commit them to the repository or share in logs.
+Seed (example from setup output)
+seed=b4d040c5080f0f123b9cb879fedf9f513eb9f50292380c7f0897c94a5ee79b94
+# address mn_shield-addr_test1l4cwlsz35s4p085kt7h9p0vjdpkp7jsuu90h34vh07kv9uhy237sxq9r7qtwhke8dxmfxhj2u65lmudkl7atterwh7ceqqlklrvmedztzgmp82ry
+MCP Server Configuration
+"mcp": {
+    "servers": {
+      "midnight-mcp": {
+        "type": "stdio",
+        "name": "Midnight MCP",
+        "command": "bash",
+        "args": [
+          "-c",
+          "source ~/.nvm/nvm.sh && AGENT_ID=workshop nvm exec 22.15.1 node /Users/cerratoa/midnight-workshop-test/midnight-mcp/dist/stdio-server.js"
+        ]
+      }
+    }
+}
+Copy the example env into env and edit the AGENT_ID value
+cp .env.example .env
+Add your custom shielded token
+TOKENS_1="FUNDING:DFUND:0200fed8d029eefb2520356354b52d20c2acbd05cb41ed8581af9fcd22e58acd508b:dega_funding_token:DAO funding token:1"
+# Testing Address mn_shield-addr_test1kjq5r8pexsugxcfqhjn8nnmleu6s9yqkfu9jyyp6tg3dqumg8mwsxqrxx042y0zmm7ygyypjq2l7v7zv8teyrdgrv240xe2dtgd7yj6tkv66m3g6
+Run the mindight-mcp server
+yarn dev
+ElizaOS Install and setup
+bun install -g @elizaos/cli@1.5.9
+Clone Eliza Base Agent
+git clone git@github.com:DEGAorg/Eliza-Base-Agent.git
+CD into the agent
+cd Eliza-Base-Agent
+Run npm install
+bun install
+CP env file and add API KEY
+cp .base.env .env
+# OPENAI_API_KEY=sk-proj-xx
+# PGLITE_DATA_DIR=/path/to/dir/.eliza/.elizadb
+# DISCORD_APPLICATION_ID=
+# DISCORD_API_TOKEN=
+Run AI Agent
+elizaos start
+Update the example character, edit the mcp server to the output form the step 6.
+
+Workshop - Day 2
+
+Add the DAO Governance token
+TOKENS_2="DAO:DGOV:02004dc22b262c348348b8523c9a2c70a1b0806b1bc2ebcb52caf0bd8bbe807a5205:dega_dao_token:DAO voting token:0"
+Add the DAO Contract address
+DAO="0200b637174ba502f308c5387b71fbdddfad8b351151836c302837b420459618fa41:02004dc22b262c348348b8523c9a2c70a1b0806b1bc2ebcb52caf0bd8bbe807a5205:0200fed8d029eefb2520356354b52d20c2acbd05cb41ed8581af9fcd22e58acd508b:500:100:Custom DAO for voting"
+
+# DAO Contract alone
+#0200b637174ba502f308c5387b71fbdddfad8b351151836c302837b420459618fa41
+
+Workshop - Day 3 Smart Contracts
+Requirement:
+- Compactc 0.24.0 (https://docs.midnight.network/relnotes/compact)
+- Repository https://github.com/DEGAorg/midnight-dao-contract
+- Branch feature/contracts
+Setup
+Clone DAO example repository:
+git clone git@github.com:DEGAorg/midnight-dao-contract.git
+cd midnight-dao-contract
+Checkout the working branch
+git checkout feature/contracts
+Install dependencies
+npm install
+Compile and build contracts
+cd contracts
+npm run compact
+Build the contracts
+npm run build
+Go to CLI directory
+cd ../cli
+Install and build the CLI
+npm install
+npm run build
+Run the CLI pointing to testnet
+npm run testnet-remote
+Fresh test wallet
+86ccebddf84f52002f14b14aff9e68553d052a7b8528ac4589ae49902977bb44
+
+
