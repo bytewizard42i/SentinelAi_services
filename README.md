@@ -70,6 +70,12 @@ node cli/interact.js
 | Fraud Detection | 60% | 95% | **58% increase** |
 | User Satisfaction | 6/10 | 9/10 | **50% increase** |
 
+## 🎨 Interactive Workflow Visualization
+
+**🎯 Miro Board**: [View Complete Workflow Diagram](https://miro.com/app/board/uXjVJEyjmys=/?share_link_id=243464122)
+
+Interactive visualization of the three-tier AI governance system, showing how SentinelAI prevents DAO treasury disasters through intelligent automation.
+
 ## Resources
 
 - **ElizaOS Fork**: https://github.com/bytewizard42i/Eliza-Base-Agent-johns_copy

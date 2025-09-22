@@ -6,6 +6,14 @@ Create a comprehensive workflow diagram for **SentinelAI Services - Three-Tier A
 
 ---
 
+## 🎨 **Miro Workflow Visualization**
+
+**Interactive Workflow Board**: https://miro.com/app/board/uXjVJEyjmys=/?share_link_id=243464122
+
+Use this Miro board to visualize the complete SentinelAI three-tier governance system with interactive workflow diagrams, showing judges exactly how the AI pillars work together.
+
+---
+
 ## 📋 **Visual Elements to Include**
 
 ### **1. Main Title Section**
