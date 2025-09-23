@@ -1,0 +1,41 @@
+[build]
+  publish = "frontend/dist"
+  command = "cd frontend && npm run build"
+
+[build.environment]
+  NODE_VERSION = "22.15.1"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://sentinelai-backend.onrender.com/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/ws"
+  to = "wss://sentinelai-backend.onrender.com/ws"
+  status = 200
+
+[[redirects]]
+  from = "/risk-tolerance-quiz.html"
+  to = "/risk-tolerance-quiz.html"
+  status = 200
+
+[dev]
+  publish = "frontend/dist"
+  command = "cd frontend && npm run build"
+  port = 3001
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"

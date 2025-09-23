@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Midnight Proof Server v4 - Core Blockchain Proofs
   proof-server:
-    image: midnightnetwork/proof-server:4.0.0
+    image: midnight/proof-server:v4
     container_name: sentinel-proof-server
     ports:
       - "6300:6300"
