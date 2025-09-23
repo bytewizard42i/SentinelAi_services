@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Midnight Proof Server
   proof-server:
-    image: midnight/proof-server:v4
+    image: midnightnetwork/proof-server:latest
     container_name: sentinel-proof-server
     ports:
       - "6300:6300"

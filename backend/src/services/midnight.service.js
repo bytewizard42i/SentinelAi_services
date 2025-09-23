@@ -1,10 +1,10 @@
 // Midnight Network Integration Service
 // Handles all blockchain interactions with Midnight
 
-// Midnight imports temporarily disabled for demo
-// import { Wallet, createWalletRoot } from '@midnight-ntwrk/wallet';
-// import { NetworkId } from '@midnight-ntwrk/midnight-js-types';
-// import { Ledger } from '@midnight-ntwrk/ledger';
+// Midnight Network imports
+import { Wallet, createWalletRoot } from '@midnight-ntwrk/wallet';
+import { NetworkId } from '@midnight-ntwrk/midnight-js-types';
+import { Ledger } from '@midnight-ntwrk/ledger';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
