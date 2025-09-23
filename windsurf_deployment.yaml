@@ -1,0 +1,233 @@
+# SentinelAI Windsurf Deployment Configuration
+# Complete full-stack deployment for hackathon submission
+
+# Project metadata
+name: "SentinelAI - Three-Tier AI DAO Treasury Governance"
+description: "Privacy-preserving AI-powered treasury management system built on Midnight Network for DoraHacks hackathon"
+version: "1.0.0"
+author: "SentinelAI Team"
+
+# Deployment configuration
+deployment:
+  # Frontend deployment (React dashboard)
+  frontend:
+    framework: "create-react-app"
+    build_command: "cd frontend && npm run build"
+    output_directory: "frontend/dist"
+    environment:
+      REACT_APP_API_URL: "${BACKEND_URL}"
+      REACT_APP_WS_URL: "wss://${BACKEND_URL#https://}"
+      REACT_APP_ENVIRONMENT: "production"
+    ports:
+      - "3001"
+    health_check:
+      path: "/"
+      timeout: 30
+
+  # Backend deployment (Node.js API)
+  backend:
+    framework: "node"
+    build_command: "npm install"
+    start_command: "npm start"
+    runtime: "node:22.15.1"
+    environment:
+      NODE_ENV: "production"
+      PORT: "3000"
+      DATABASE_URL: "${DATABASE_URL}"
+      REDIS_URL: "${REDIS_URL}"
+      JWT_SECRET: "${JWT_SECRET}"
+      SESSION_SECRET: "${SESSION_SECRET}"
+      MIDNIGHT_NODE_URL: "https://midnight-testnet.hyperlane.com"
+      PROOF_SERVER_URL: "http://localhost:6300"
+      MIDNIGHT_SDK_VERSION: "2.0.2"
+      LOG_LEVEL: "info"
+    ports:
+      - "3000"
+    health_check:
+      path: "/health"
+      timeout: 30
+
+# Service dependencies
+services:
+  - name: "proof-server"
+    image: "midnightnetwork/proof-server:latest"
+    ports:
+      - "6300:6300"
+    environment:
+      PROOF_SERVER_PORT: "6300"
+      NETWORK: "testnet"
+    health_check:
+      test: ["CMD", "curl", "-f", "http://localhost:6300/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Environment variables (secrets)
+environment_variables:
+  # Database
+  DATABASE_URL:
+    description: "PostgreSQL connection string from Supabase"
+    required: true
+    sensitive: true
+
+  # Redis
+  REDIS_URL:
+    description: "Redis connection string from Upstash"
+    required: true
+    sensitive: true
+
+  # Security
+  JWT_SECRET:
+    description: "JWT signing secret (32+ characters)"
+    required: true
+    sensitive: true
+
+  SESSION_SECRET:
+    description: "Session signing secret (32+ characters)"
+    required: true
+    sensitive: true
+
+  # Optional AI APIs
+  OPENAI_API_KEY:
+    description: "OpenAI API key for Eliza integration"
+    required: false
+    sensitive: true
+
+# Build configuration
+build:
+  # Pre-build steps
+  pre_build:
+    - name: "Install dependencies"
+      command: "npm install"
+      cwd: "backend"
+
+    - name: "Install frontend dependencies"
+      command: "cd frontend && npm install"
+
+  # Build steps
+  build:
+    - name: "Build frontend"
+      command: "cd frontend && npm run build"
+
+    - name: "Compile contracts"
+      command: "npm run compile-contracts"
+      cwd: "backend"
+
+  # Post-build steps
+  post_build:
+    - name: "Run tests"
+      command: "npm test"
+      cwd: "backend"
+
+# Domains and routing
+routing:
+  # Frontend routes
+  frontend_routes:
+    - path: "/*"
+      destination: "frontend"
+
+  # API routes
+  api_routes:
+    - path: "/api/*"
+      destination: "backend"
+
+  # WebSocket routes
+  websocket_routes:
+    - path: "/ws"
+      destination: "backend"
+
+# Monitoring and logging
+monitoring:
+  enabled: true
+  logs:
+    retention: "30d"
+  metrics:
+    enabled: true
+    endpoints:
+      - "/health"
+      - "/metrics"
+
+# Security configuration
+security:
+  # HTTPS enforcement
+  force_https: true
+
+  # CORS configuration
+  cors:
+    allowed_origins:
+      - "${FRONTEND_URL}"
+      - "https://sentinelai.netlify.app"
+      - "https://sentinelai.vercel.app"
+
+  # Rate limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+
+# Scaling configuration
+scaling:
+  # Frontend (static hosting)
+  frontend:
+    min_instances: 1
+    max_instances: 1
+
+  # Backend (API server)
+  backend:
+    min_instances: 1
+    max_instances: 3
+    cpu_threshold: 70
+    memory_threshold: 80
+
+# Backup configuration
+backups:
+  database:
+    enabled: true
+    schedule: "daily"
+    retention: "30d"
+
+# CDN configuration
+cdn:
+  enabled: true
+  regions:
+    - "us-east-1"
+    - "eu-west-1"
+
+# Custom domains (optional)
+domains:
+  - name: "sentinelai.app"
+    type: "primary"
+  - name: "api.sentinelai.app"
+    type: "api"
+
+# Notifications
+notifications:
+  # Deployment notifications
+  deployments:
+    enabled: true
+    channels:
+      - "email"
+
+  # Error notifications
+  errors:
+    enabled: true
+    channels:
+      - "email"
+    thresholds:
+      error_rate: 5
+
+# Hackathon configuration
+hackathon:
+  event: "DoraHacks AI Treasury Management"
+  submission_url: "https://dorahacks.io/hackathon/ai-treasury-management/submission"
+  demo_url: "${FRONTEND_URL}"
+  api_url: "${BACKEND_URL}"
+  github_url: "https://github.com/bytewizard42i/SentinelAi_services"
+  video_url: ""  # To be filled after recording
+
+# Documentation
+readme: "README.md"
+docs:
+  - "ARCHITECTURE.md"
+  - "DEPLOYMENT_GUIDE.md"
+  - "MIDNIGHT_INTEGRATION.md"
+  - "FINAL_SUBMISSION_README.md"
