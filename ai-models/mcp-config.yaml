@@ -1,0 +1,151 @@
+# SentinelAI Model Context Protocol Configuration
+# MCP server for AI agent communication and coordination
+# Enables seamless interaction between AI systems and smart contracts
+
+mcp:
+  version: "1.0"
+  server:
+    host: "localhost"
+    port: 3000
+    protocol: "mcp"
+    tls: false
+
+clients:
+  - name: "TreasuryWatchdog"
+    type: "anomaly_detector"
+    endpoint: "/mcp/watchdog"
+    capabilities:
+      - behavioral_analysis
+      - anomaly_detection
+      - security_alerts
+    contract_address: "auto"
+
+  - name: "MarketGuardian"
+    type: "market_analyzer"
+    endpoint: "/mcp/guardian"
+    capabilities:
+      - market_analysis
+      - risk_assessment
+      - rebalancing_signals
+    contract_address: "auto"
+
+  - name: "RiskProfiler"
+    type: "risk_assessor"
+    endpoint: "/mcp/profiler"
+    capabilities:
+      - user_profiling
+      - risk_evaluation
+      - allocation_optimization
+    contract_address: "auto"
+
+  - name: "TreasuryOrchestrator"
+    type: "coordinator"
+    endpoint: "/mcp/orchestrator"
+    capabilities:
+      - action_coordination
+      - conflict_resolution
+      - priority_management
+    contract_address: "auto"
+
+protocols:
+  - name: "secure_communication"
+    encryption: "zkp"
+    authentication: "midnight_signature"
+    compression: "gzip"
+
+  - name: "real_time_updates"
+    transport: "websocket"
+    heartbeat: 30000
+    reconnection: true
+
+  - name: "batch_processing"
+    batch_size: 100
+    timeout: 5000
+    retry_policy: "exponential_backoff"
+
+resources:
+  - type: "market_data"
+    provider: "coingecko"
+    update_frequency: "5m"
+    cache_ttl: "300"
+
+  - type: "transaction_data"
+    provider: "midnight_network"
+    update_frequency: "1m"
+    cache_ttl: "60"
+
+  - type: "user_profiles"
+    provider: "local_database"
+    update_frequency: "10m"
+    cache_ttl: "600"
+
+tools:
+  - name: "anomaly_scorer"
+    description: "Score transactions for anomalous behavior"
+    parameters:
+      transaction_data: "object"
+      user_history: "array"
+    returns: "anomaly_score"
+
+  - name: "market_predictor"
+    description: "Predict market movements and volatility"
+    parameters:
+      market_data: "object"
+      time_horizon: "string"
+    returns: "prediction_result"
+
+  - name: "risk_profiler"
+    description: "Create personalized risk profiles"
+    parameters:
+      quiz_responses: "object"
+      user_history: "array"
+    returns: "risk_profile"
+
+  - name: "portfolio_optimizer"
+    description: "Optimize portfolio allocation"
+    parameters:
+      risk_profile: "object"
+      current_allocation: "object"
+      market_conditions: "object"
+    returns: "optimized_allocation"
+
+workflows:
+  - name: "new_transaction_flow"
+    steps:
+      - anomaly_check
+      - risk_validation
+      - approval_routing
+      - execution
+
+  - name: "market_rebalance_flow"
+    steps:
+      - market_analysis
+      - risk_assessment
+      - allocation_calculation
+      - gradual_execution
+
+  - name: "user_onboarding_flow"
+    steps:
+      - risk_quiz
+      - profile_creation
+      - allocation_setup
+      - monitoring_activation
+
+logging:
+  level: "info"
+  format: "json"
+  outputs:
+    - console
+    - file: "/app/logs/mcp.log"
+    - remote: "midnight_network"
+
+monitoring:
+  enabled: true
+  metrics:
+    - request_count
+    - response_time
+    - error_rate
+    - throughput
+  dashboards:
+    - grafana_url: "http://grafana:3002"
+    - prometheus_url: "http://prometheus:9090"

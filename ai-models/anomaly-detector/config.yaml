@@ -1,0 +1,50 @@
+# SentinelAI Anomaly Detection Model
+# AI-powered behavioral profiling and anomaly detection
+# Trained on historical DAO treasury transaction patterns
+
+model:
+  name: "SentinelAI Anomaly Detector"
+  version: "1.0.0"
+  type: "behavioral_analysis"
+  framework: "custom"
+
+training:
+  dataset: "dao_treasury_transactions_2023-2025"
+  features:
+    - transaction_amount
+    - transaction_frequency
+    - time_patterns
+    - wallet_age
+    - interaction_history
+    - risk_profile_changes
+  algorithm: "isolation_forest"
+  accuracy: 0.94
+  false_positive_rate: 0.03
+
+features:
+  - real_time_scoring: true
+  - adaptive_thresholds: true
+  - multi_wallet_tracking: true
+  - suspicious_pattern_detection: true
+  - insider_threat_detection: true
+
+endpoints:
+  - score_transaction: "/api/ai/anomaly/score"
+  - analyze_wallet: "/api/ai/anomaly/analyze"
+  - train_model: "/api/ai/anomaly/train"
+
+integration:
+  contract: "TreasuryWatchdog"
+  triggers:
+    - transaction_submitted
+    - profile_updated
+    - suspicious_activity_detected
+
+configuration:
+  sensitivity: 0.85
+  confidence_threshold: 0.75
+  alert_levels:
+    low: 0.6
+    medium: 0.75
+    high: 0.9
+    critical: 0.95

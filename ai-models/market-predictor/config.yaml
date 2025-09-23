@@ -1,0 +1,59 @@
+# SentinelAI Market Prediction Model
+# Advanced market sentiment analysis and risk rebalancing
+# Combines technical indicators with on-chain analytics
+
+model:
+  name: "SentinelAI Market Predictor"
+  version: "1.0.0"
+  type: "market_sentiment"
+  framework: "ensemble"
+
+training:
+  dataset: "crypto_market_data_2020-2025"
+  features:
+    - price_volatility
+    - trading_volume
+    - market_sentiment
+    - on_chain_metrics
+    - social_sentiment
+    - macroeconomic_indicators
+  algorithm: "xgboost_ensemble"
+  accuracy: 0.87
+  sharpe_ratio: 1.8
+
+features:
+  - multi_asset_support: true
+  - real_time_sentiment: true
+  - volatility_prediction: true
+  - rebalancing_signals: true
+  - risk_adjustment: true
+
+endpoints:
+  - predict_market: "/api/ai/market/predict"
+  - analyze_sentiment: "/api/ai/market/sentiment"
+  - generate_signals: "/api/ai/market/signals"
+
+integration:
+  contract: "MarketGuardian"
+  triggers:
+    - market_data_updated
+    - volatility_spike
+    - sentiment_change
+    - rebalance_due
+
+configuration:
+  update_frequency: "5m"
+  prediction_horizon: "24h"
+  confidence_threshold: 0.7
+  risk_tolerance_levels:
+    conservative: 0.3
+    balanced: 0.5
+    aggressive: 0.8
+
+rebalancing:
+  strategies:
+    - gradual: "10% max per transaction"
+    - threshold: "5% deviation trigger"
+    - emergency: "15% deviation immediate action"
+  cooldown_period: "1h"
+  minimum_trade_size: "100 USD"

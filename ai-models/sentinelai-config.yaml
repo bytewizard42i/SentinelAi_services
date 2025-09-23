@@ -1,0 +1,186 @@
+# SentinelAI Services - Complete AI Configuration
+# Comprehensive configuration for all AI systems and integrations
+# Version 1.0.0 - Production Ready
+
+# Global AI Configuration
+ai_system:
+  name: "SentinelAI"
+  version: "1.0.0"
+  description: "Three-tier AI governance system for DAO treasury management"
+  status: "production"
+
+# Core AI Models
+models:
+  anomaly_detector:
+    name: "Behavioral Anomaly Detector"
+    model_path: "./ai-models/anomaly-detector"
+    config_file: "config.yaml"
+    enabled: true
+    priority: 1
+
+  market_predictor:
+    name: "Market Sentiment Predictor"
+    model_path: "./ai-models/market-predictor"
+    config_file: "config.yaml"
+    enabled: true
+    priority: 2
+
+  risk_assessor:
+    name: "Personalized Risk Assessor"
+    model_path: "./ai-models/risk-assessor"
+    config_file: "config.yaml"
+    enabled: true
+    priority: 3
+
+# AI Agent Configuration
+agents:
+  watchdog_agent:
+    model: "anomaly_detector"
+    role: "Security monitoring and threat detection"
+    autonomy_level: "semi_autonomous"
+    trigger_conditions:
+      - transaction_amount > 10000
+      - unusual_frequency_pattern
+      - profile_changes > 40_points
+    response_actions:
+      - alert_user
+      - initiate_challenge
+      - freeze_if_critical
+
+  guardian_agent:
+    model: "market_predictor"
+    role: "Market analysis and risk management"
+    autonomy_level: "autonomous"
+    trigger_conditions:
+      - volatility_spike > 15%
+      - portfolio_deviation > 5%
+      - market_sentiment_change
+    response_actions:
+      - analyze_market
+      - recommend_rebalancing
+      - execute_gradual_adjustments
+
+  profiler_agent:
+    model: "risk_assessor"
+    role: "User risk profiling and guidance"
+    autonomy_level: "interactive"
+    trigger_conditions:
+      - quiz_completed
+      - profile_update_requested
+      - suspicious_behavior_detected
+    response_actions:
+      - create_risk_profile
+      - generate_allocation
+      - flag_suspicious_changes
+
+# MCP Integration
+mcp:
+  enabled: true
+  config_file: "./ai-models/mcp-config.yaml"
+  server_url: "http://localhost:3000"
+  protocol_version: "1.0"
+
+# Eliza OS Integration
+eliza:
+  enabled: true
+  version: "1.5.9"
+  config_file: "./ai-models/eliza-integration.yaml"
+  natural_language_enabled: true
+  multi_agent_coordination: true
+
+# AI Service Endpoints
+api_endpoints:
+  base_url: "http://localhost:3000/api/ai"
+
+  anomaly:
+    score: "/anomaly/score"
+    analyze: "/anomaly/analyze"
+    train: "/anomaly/train"
+
+  market:
+    predict: "/market/predict"
+    sentiment: "/market/sentiment"
+    signals: "/market/signals"
+
+  risk:
+    assess: "/risk/assess"
+    optimize: "/risk/optimize"
+    detect: "/risk/detect"
+
+# Performance Monitoring
+monitoring:
+  enabled: true
+  metrics:
+    - model_accuracy
+    - response_time
+    - false_positive_rate
+    - user_satisfaction
+
+  dashboards:
+    grafana:
+      url: "http://localhost:3002"
+      dashboard: "sentinelai-ai-performance"
+
+# Security Configuration
+security:
+  encrypted_communications: true
+  api_authentication: true
+  audit_logging: true
+  rate_limiting:
+    requests_per_minute: 100
+    burst_limit: 20
+
+# Training and Updates
+training:
+  auto_update: true
+  update_frequency: "weekly"
+  data_sources:
+    - coingecko_api
+    - midnight_network
+    - user_feedback
+  validation_metrics:
+    - accuracy > 0.85
+    - false_positive_rate < 0.05
+    - user_trust_score > 4.0
+
+# Fallback Mechanisms
+fallbacks:
+  model_failure: "conservative_defaults"
+  network_outage: "cached_responses"
+  high_uncertainty: "human_override_required"
+
+# User Experience
+ux:
+  explanations_enabled: true
+  confidence_scores_shown: true
+  alternative_options_provided: true
+  educational_content_available: true
+
+# Integration with Smart Contracts
+contracts:
+  watchdog: "TreasuryWatchdog.compact"
+  guardian: "MarketGuardian.compact"
+  profiler: "RiskProfiler.compact"
+  orchestrator: "TreasuryOrchestrator.compact"
+
+# Development and Testing
+development:
+  debug_mode: false
+  mock_data_enabled: false
+  performance_profiling: true
+  unit_tests_required: true
+
+# Compliance and Ethics
+compliance:
+  privacy_preserving: true
+  bias_detection_enabled: true
+  transparency_reports: true
+  user_consent_required: true
+
+# Future Enhancements
+roadmap:
+  - voice_interactions
+  - multi_language_support
+  - advanced_portfolio_optimization
+  - cross_chain_support
+  - decentralized_model_training

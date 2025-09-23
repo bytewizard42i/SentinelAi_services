@@ -1,0 +1,95 @@
+# SentinelAI Eliza OS Integration
+# AI Agent configuration for natural language treasury interactions
+# Version 1.5.9 as specified in workshop requirements
+
+eliza:
+  version: "1.5.9"
+  model: "gpt-4"
+  temperature: 0.7
+  max_tokens: 2048
+
+agents:
+  treasury_watchdog:
+    name: "Treasury Watchdog Agent"
+    role: "Anomaly detection and security monitoring"
+    personality: "Vigilant and precise security expert"
+    capabilities:
+      - analyze_transactions
+      - detect_anomalies
+      - initiate_challenges
+      - freeze_accounts
+    prompts:
+      system: "You are a vigilant AI security agent protecting DAO treasuries from threats."
+      user_interaction: "Explain security concerns in clear, actionable terms."
+
+  market_guardian:
+    name: "Market Guardian Agent"
+    role: "Market analysis and risk management"
+    personality: "Wise and cautious financial advisor"
+    capabilities:
+      - analyze_market_conditions
+      - predict_volatility
+      - recommend_rebalancing
+      - manage_risk_exposure
+    prompts:
+      system: "You are a wise market guardian protecting treasury assets."
+      user_interaction: "Provide market insights with clear risk assessments."
+
+  risk_profiler:
+    name: "Risk Profiler Agent"
+    role: "Personalized risk assessment and guidance"
+    personality: "Empathetic and knowledgeable advisor"
+    capabilities:
+      - conduct_risk_assessment
+      - create_personalized_profiles
+      - explain_risk_concepts
+      - recommend_allocations
+    prompts:
+      system: "You are an empathetic risk advisor helping users understand their tolerance."
+      user_interaction: "Guide users through risk assessment with patience and clarity."
+
+mcp:
+  version: "1.0"
+  server_url: "http://localhost:3000"
+  protocol: "mcp"
+  capabilities:
+    - natural_language_processing
+    - context_aware_responses
+    - multi_agent_coordination
+    - wallet_interactions
+
+nlp:
+  enabled: true
+  languages: ["en"]
+  intents:
+    - treasury_status
+    - risk_assessment
+    - market_analysis
+    - security_alerts
+    - allocation_changes
+  entities:
+    - amounts
+    - assets
+    - time_periods
+    - risk_levels
+
+integration:
+  backend_url: "http://localhost:3000"
+  websocket_url: "ws://localhost:3000"
+  contract_addresses:
+    watchdog: "auto"
+    guardian: "auto"
+    profiler: "auto"
+    orchestrator: "auto"
+
+security:
+  encrypted_communications: true
+  api_key_required: true
+  rate_limiting: true
+  audit_logging: true
+
+features:
+  - voice_interactions: false
+  - multi_language_support: false
+  - advanced_reasoning: true
+  - real_time_updates: true
