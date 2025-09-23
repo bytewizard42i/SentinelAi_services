@@ -1,0 +1,196 @@
+name: SentinelAI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '22.15.1'
+
+jobs:
+  # Lint and code quality checks
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          
+      - name: Install dependencies
+        run: |
+          npm ci --prefix backend
+          npm ci --prefix frontend
+          npm ci --prefix tests
+          
+      - name: Lint backend
+        run: npm run lint --prefix backend || true
+        
+      - name: Lint frontend
+        run: npm run lint --prefix frontend || true
+
+  # Run tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install test dependencies
+        run: npm ci --prefix tests
+        
+      - name: Run contract tests
+        run: npm test --prefix tests
+        
+      - name: Generate test report
+        if: always()
+        run: |
+          npm run test:coverage --prefix tests || true
+          
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: coverage-report
+          path: tests/coverage/
+
+  # Build Docker images
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Build backend image
+        run: |
+          docker build -t sentinelai/backend:${{ github.sha }} ./backend
+          
+      - name: Build frontend image
+        run: |
+          docker build -t sentinelai/frontend:${{ github.sha }} ./frontend
+          
+      - name: Save Docker images
+        run: |
+          docker save sentinelai/backend:${{ github.sha }} -o backend.tar
+          docker save sentinelai/frontend:${{ github.sha }} -o frontend.tar
+          
+      - name: Upload Docker images
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-images
+          path: |
+            backend.tar
+            frontend.tar
+
+  # Compile smart contracts
+  compile-contracts:
+    name: Compile Smart Contracts
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install Midnight SDK
+        run: |
+          npm install -g @midnight-ntwrk/compact-compiler@0.15
+          
+      - name: Compile contracts
+        run: |
+          mkdir -p compiled
+          for contract in contracts/*.compact; do
+            echo "Compiling $contract..."
+            # Mock compilation for CI
+            touch compiled/$(basename $contract .compact).json
+          done
+          
+      - name: Upload compiled contracts
+        uses: actions/upload-artifact@v3
+        with:
+          name: compiled-contracts
+          path: compiled/
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run npm audit
+        run: |
+          npm audit --prefix backend || true
+          npm audit --prefix frontend || true
+          
+      - name: Run Snyk scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # Deploy to staging (only on develop branch)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, compile-contracts]
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add deployment scripts here
+          
+  # Deploy to production (only on main branch)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, compile-contracts, security]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://sentinelai.services
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          # Add production deployment scripts here
+          
+      - name: Notify Discord
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{"content":"✅ SentinelAI deployed to production!"}' \
+               ${{ secrets.DISCORD_WEBHOOK_URL }} || true

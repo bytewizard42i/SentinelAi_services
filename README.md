@@ -4,6 +4,11 @@
 
 > **One-click deployment** of three-tier AI governance for DAO treasury management with privacy-preserving Midnight Network integration.
 
+<div align="center">
+  <img src="media/ChatGPT Image Sep 22, 2025, 05_43_46 PM.png" alt="SentinelAI Services - Three Pillars" width="100%">
+  <p><b>AI Watchdog</b> | <b>AI Funds Protection</b> | <b>AI Profile Allocation</b></p>
+</div>
+
 ## 🚀 Quickstart Demo: 10-Min Treasury Guardian Flow
 
 ### Prerequisites
@@ -11,8 +16,6 @@
 - Docker & Docker Compose
 - Yarn 4.1.0
 - 4GB RAM minimum
-
-![SentinelAI Services Banner](media/readme/project-banner.svg)
 
 ### ⚡ One-Click Setup
 

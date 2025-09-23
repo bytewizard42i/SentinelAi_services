@@ -518,15 +518,62 @@
         }
 
         // Show results
-        function showResults() {
+        async function showResults() {
             const score = calculateScore();
             const settings = generateProfile(score);
             const riskLevel = getRiskLevel(settings);
+
+            // Prepare quiz responses for API
+            const responses = {};
+            for (let q = 1; q <= totalQuestions; q++) {
+                responses[`q${q}`] = parseInt(answers[`q${q}`]) || 1;
+            }
+
+            // Try to submit to API if available
+            let apiSuccess = false;
+            let apiData = null;
+            
+            try {
+                // Get userId from localStorage or generate a temporary one
+                const userId = localStorage.getItem('userId') || 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('userId', userId);
+                
+                const response = await fetch('/api/risk/submit-quiz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        responses: responses
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    apiSuccess = true;
+                    apiData = result.data;
+                    
+                    // Use API data if available
+                    if (apiData) {
+                        settings.riskAppetite = apiData.settings.riskAppetite;
+                        settings.minStablecoin = apiData.settings.minStablecoin;
+                        settings.maxStablecoin = apiData.settings.maxStablecoin;
+                        settings.rebalanceCooldown = apiData.settings.rebalanceCooldown;
+                        settings.circuitBreakerEnabled = apiData.settings.circuitBreakerEnabled;
+                    }
+                }
+            } catch (error) {
+                console.log('API not available, using local calculation');
+            }
 
             const resultsHTML = `
                 <h2>Your Risk Assessment Results</h2>
                 <div class="risk-level ${riskLevel.class}">${riskLevel.text} Investor</div>
                 <p style="margin: 20px 0; color: #666;">Based on your answers, your risk tolerance score is <strong>${score}/100</strong></p>
+
+                ${apiSuccess ? '<p style="color: #00ff88; font-weight: 600;">✓ Profile saved to SentinelAI</p>' : ''}
+                ${apiData && apiData.profile.flagged ? `<p style="color: #ff3366; font-weight: 600;">⚠️ ${apiData.profile.flagReason}</p>` : ''}
 
                 <div class="risk-settings">
                     <h3 style="margin-bottom: 20px; color: #333;">Recommended Risk Settings</h3>
@@ -552,9 +599,29 @@
                     </div>
                 </div>
 
+                ${apiData && apiData.allocation ? `
+                <div class="risk-settings" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 20px; color: #333;">Recommended Allocation</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Stablecoins:</span>
+                        <span class="setting-value">${apiData.allocation.stablecoins}%</span>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Major Cryptos:</span>
+                        <span class="setting-value">${apiData.allocation.majors}%</span>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Altcoins:</span>
+                        <span class="setting-value">${apiData.allocation.altcoins}%</span>
+                    </div>
+                </div>
+                ` : ''}
+
                 <p style="font-size: 0.9rem; color: #666; margin-top: 20px;">
-                    These settings will be applied to your SentinelAI portfolio to match your risk tolerance.
+                    ${apiSuccess ? 'These settings have been applied to your SentinelAI portfolio.' : 'These settings will be applied to your SentinelAI portfolio to match your risk tolerance.'}
                 </p>
+                
+                ${apiSuccess ? '<button class="btn" style="margin-top: 20px;" onclick="window.location.href=\'/dashboard\'">Go to Dashboard</button>' : ''}
             `;
 
             document.getElementById('resultsContent').innerHTML = resultsHTML;
