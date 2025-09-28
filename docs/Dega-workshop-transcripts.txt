@@ -4017,4 +4017,132 @@ the outro and then uh hopefully we can chat in discord the upcoming week. Have
 1:27:28
 a good day.
 
+Workshop - Buidling AI Agents With Midnight SDK
+Overview
+Set up the Midnight MCP environment for Workshop 1, install dependencies, run tests, build the project, and configure a local agent.
+Requirements
+Node.js 22.15.1 or higher
+ElizaOS 1.5.9
+Docker
+Midnight Proof Server v4.0.0
+Yarn 4.1.0
+Bun 1.1.20
+Ensure the exact Node.js version is available via nvm to avoid build inconsistencies.
+Repository
+Repo: git@github.com:DEGAorg/midnight-mcp.git
+Branch: workshop
+Setup Steps
+Clone the repository
+
+
+git clone git@github.com:DEGAorg/midnight-mcp.git
+cd midnight-mcp
+
+Switch to the workshop branch
+
+
+git checkout workshop
+
+Install dependencies
+
+
+yarn install
+
+Build the project
+
+
+yarn build
+
+Set up a new agent for local development
+
+
+yarn setup-agent -a workshop
+# yarn setup-agent -a workshop -s "b4d040c5080f0f123b9cb879fedf9f513eb9f50292380c7f0897c94a5ee79b94"
+
+Save the generated seed and update MCP server config
+
+
+Save the seed in a secure location.
+Copy the MCP server config into the appropriate agent configuration.
+Treat the seed and credentials as secrets. Do not commit them to the repository or share in logs.
+Seed (example from setup output)
+seed=b4d040c5080f0f123b9cb879fedf9f513eb9f50292380c7f0897c94a5ee79b94
+# address mn_shield-addr_test1l4cwlsz35s4p085kt7h9p0vjdpkp7jsuu90h34vh07kv9uhy237sxq9r7qtwhke8dxmfxhj2u65lmudkl7atterwh7ceqqlklrvmedztzgmp82ry
+MCP Server Configuration
+"mcp": {
+    "servers": {
+      "midnight-mcp": {
+        "type": "stdio",
+        "name": "Midnight MCP",
+        "command": "bash",
+        "args": [
+          "-c",
+          "source ~/.nvm/nvm.sh && AGENT_ID=workshop nvm exec 22.15.1 node /Users/cerratoa/midnight-workshop-test/midnight-mcp/dist/stdio-server.js"
+        ]
+      }
+    }
+}
+Copy the example env into env and edit the AGENT_ID value
+cp .env.example .env
+Add your custom shielded token
+TOKENS_1="FUNDING:DFUND:0200fed8d029eefb2520356354b52d20c2acbd05cb41ed8581af9fcd22e58acd508b:dega_funding_token:DAO funding token:1"
+# Testing Address mn_shield-addr_test1kjq5r8pexsugxcfqhjn8nnmleu6s9yqkfu9jyyp6tg3dqumg8mwsxqrxx042y0zmm7ygyypjq2l7v7zv8teyrdgrv240xe2dtgd7yj6tkv66m3g6
+Run the mindight-mcp server
+yarn dev
+ElizaOS Install and setup
+bun install -g @elizaos/cli@1.5.9
+Clone Eliza Base Agent
+git clone git@github.com:DEGAorg/Eliza-Base-Agent.git
+CD into the agent
+cd Eliza-Base-Agent
+Run npm install
+bun install
+CP env file and add API KEY
+cp .base.env .env
+# OPENAI_API_KEY=sk-proj-xx
+# PGLITE_DATA_DIR=/path/to/dir/.eliza/.elizadb
+# DISCORD_APPLICATION_ID=
+# DISCORD_API_TOKEN=
+Run AI Agent
+elizaos start
+Update the example character, edit the mcp server to the output form the step 6.
+
+Workshop - Day 2
+
+Add the DAO Governance token
+TOKENS_2="DAO:DGOV:02004dc22b262c348348b8523c9a2c70a1b0806b1bc2ebcb52caf0bd8bbe807a5205:dega_dao_token:DAO voting token:0"
+Add the DAO Contract address
+DAO="0200b637174ba502f308c5387b71fbdddfad8b351151836c302837b420459618fa41:02004dc22b262c348348b8523c9a2c70a1b0806b1bc2ebcb52caf0bd8bbe807a5205:0200fed8d029eefb2520356354b52d20c2acbd05cb41ed8581af9fcd22e58acd508b:500:100:Custom DAO for voting"
+
+# DAO Contract alone
+#0200b637174ba502f308c5387b71fbdddfad8b351151836c302837b420459618fa41
+
+Workshop - Day 3 Smart Contracts
+Requirement:
+- Compactc 0.24.0 (https://docs.midnight.network/relnotes/compact)
+- Repository https://github.com/DEGAorg/midnight-dao-contract
+- Branch feature/contracts
+Setup
+Clone DAO example repository:
+git clone git@github.com:DEGAorg/midnight-dao-contract.git
+cd midnight-dao-contract
+Checkout the working branch
+git checkout feature/contracts
+Install dependencies
+npm install
+Compile and build contracts
+cd contracts
+npm run compact
+Build the contracts
+npm run build
+Go to CLI directory
+cd ../cli
+Install and build the CLI
+npm install
+npm run build
+Run the CLI pointing to testnet
+npm run testnet-remote
+Fresh test wallet
+86ccebddf84f52002f14b14aff9e68553d052a7b8528ac4589ae49902977bb44
+
 
