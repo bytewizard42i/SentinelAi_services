@@ -1,344 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
-import './dashboard.css';
+import React, { useState } from 'react';
 
-// Import Chart.js components
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
-
-// Configuration
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:3000';
-
-// WebSocket connection for real-time updates
-let ws = null;
-
-// Main Dashboard Component
 const SentinelDashboard = () => {
-  // State management
   const [activeTab, setActiveTab] = useState('overview');
-  const [userData, setUserData] = useState(null);
-  const [treasuryData, setTreasuryData] = useState({
-    totalValue: 1000000,
-    allocation: {
-      stablecoins: 30,
-      majors: 50,
-      altcoins: 20
-    },
-    performance: {
-      day: 2.3,
-      week: -1.5,
-      month: 8.7
-    }
-  });
-  
-  const [watchdogAlerts, setWatchdogAlerts] = useState([]);
-  const [marketData, setMarketData] = useState({
-    btc: 45000,
-    eth: 3000,
-    marketSentiment: 65
-  });
-  
-  const [riskProfile, setRiskProfile] = useState({
-    score: 0,
-    level: 'Not Set',
-    settings: null
-  });
-
-  // WebSocket connection
-  useEffect(() => {
-    connectWebSocket();
-    loadUserProfile();
-    
-    return () => {
-      if (ws) ws.close();
-    };
-  }, []);
-
-  const connectWebSocket = () => {
-    ws = new WebSocket('ws://localhost:8080');
-    
-    ws.onopen = () => {
-      console.log('Connected to SentinelAI WebSocket');
-    };
-    
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      handleWebSocketMessage(data);
-    };
-    
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-  };
-
-  const handleWebSocketMessage = (data) => {
-    switch (data.type) {
-      case 'init':
-        if (data.data.treasury) setTreasuryData(data.data.treasury);
-        if (data.data.alerts) setWatchdogAlerts(data.data.alerts);
-        if (data.data.market) setMarketData(data.data.market);
-        break;
-      case 'action':
-        // Handle orchestrator actions
-        console.log('Orchestrator action:', data.data);
-        break;
-      case 'alert':
-        setWatchdogAlerts(prev => [data.data, ...prev].slice(0, 10));
-        break;
-      case 'rebalance':
-        setTreasuryData(data.data);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const loadUserProfile = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/profiler/profile`);
-      const data = await response.json();
-      setUserData(data);
-      if (data.profile) {
-        setRiskProfile(data.profile);
-      }
-    } catch (error) {
-      console.error('Failed to load user profile:', error);
-    }
-  };
-
-  // Chart configurations
-  const portfolioChartData = {
-    labels: ['Stablecoins', 'Major Cryptos', 'Altcoins'],
-    datasets: [{
-      data: [
-        treasuryData.allocation.stablecoins,
-        treasuryData.allocation.majors,
-        treasuryData.allocation.altcoins
-      ],
-      backgroundColor: ['#00ff88', '#667eea', '#764ba2'],
-      borderWidth: 0
-    }]
-  };
-
-  const performanceChartData = {
-    labels: ['1 Day', '1 Week', '1 Month'],
-    datasets: [{
-      label: 'Performance %',
-      data: [
-        treasuryData.performance.day,
-        treasuryData.performance.week,
-        treasuryData.performance.month
-      ],
-      backgroundColor: (context) => {
-        const value = context.parsed.y;
-        return value >= 0 ? '#00ff88' : '#ff3366';
-      },
-      borderColor: '#667eea',
-      borderWidth: 2
-    }]
-  };
-
-  const marketTrendData = {
-    labels: ['12h', '10h', '8h', '6h', '4h', '2h', 'Now'],
-    datasets: [{
-      label: 'Market Sentiment',
-      data: [58, 62, 65, 61, 68, 70, marketData.marketSentiment],
-      fill: true,
-      backgroundColor: 'rgba(102, 126, 234, 0.1)',
-      borderColor: '#667eea',
-      tension: 0.4
-    }]
-  };
 
   // Component sections
   const Overview = () => (
-    <div className="overview-section">
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-header">
-            <h3>Total Treasury Value</h3>
-            <span className="stat-badge positive">+{treasuryData.performance.day}%</span>
-          </div>
-          <div className="stat-value">${(treasuryData.totalValue / 1000000).toFixed(2)}M</div>
-          <div className="stat-subtitle">24h Change: ${(treasuryData.totalValue * treasuryData.performance.day / 100).toFixed(0)}</div>
+    <div>
+      <h2 style={{color: '#667eea', marginBottom: '20px'}}>Dashboard Overview</h2>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '20px',
+        marginBottom: '30px'
+      }}>
+        <div style={{
+          backgroundColor: '#242b3d',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <h3 style={{color: '#ffffff', marginBottom: '10px'}}>Treasury Value</h3>
+          <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#00ff88'}}>$1.0M</div>
+          <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>+2.3% 24h change</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <h3>Risk Level</h3>
-            <span className={`risk-badge ${riskProfile.level.toLowerCase()}`}>
-              {riskProfile.level}
-            </span>
-          </div>
-          <div className="stat-value">{riskProfile.score}/100</div>
-          <div className="stat-subtitle">
-            {riskProfile.level === 'Conservative' && 'Safety First Strategy'}
-            {riskProfile.level === 'Balanced' && 'Moderate Risk/Reward'}
-            {riskProfile.level === 'Aggressive' && 'High Growth Focus'}
-            {riskProfile.level === 'Not Set' && 'Take Risk Assessment'}
-          </div>
+        <div style={{
+          backgroundColor: '#242b3d',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <h3 style={{color: '#ffffff', marginBottom: '10px'}}>Risk Profile</h3>
+          <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#ffa500'}}>Balanced</div>
+          <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>65/100 score</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <h3>Active Alerts</h3>
-            <span className="stat-badge alert">{watchdogAlerts.length}</span>
-          </div>
-          <div className="stat-value">{watchdogAlerts.filter(a => a.severity === 'critical').length} Critical</div>
-          <div className="stat-subtitle">Last check: 2 minutes ago</div>
+        <div style={{
+          backgroundColor: '#242b3d',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <h3 style={{color: '#ffffff', marginBottom: '10px'}}>Active Alerts</h3>
+          <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#ff3366'}}>0</div>
+          <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>No threats detected</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-header">
-            <h3>Market Guardian</h3>
-            <span className="stat-badge active">Active</span>
-          </div>
-          <div className="stat-value">{marketData.marketSentiment}%</div>
-          <div className="stat-subtitle">Market Sentiment Score</div>
-        </div>
-      </div>
-
-      <div className="charts-grid">
-        <div className="chart-card">
-          <h3>Portfolio Allocation</h3>
-          <Doughnut data={portfolioChartData} options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom' }
-            }
-          }} />
-        </div>
-
-        <div className="chart-card">
-          <h3>Performance Overview</h3>
-          <Bar data={performanceChartData} options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false }
-            }
-          }} />
-        </div>
-
-        <div className="chart-card wide">
-          <h3>Market Sentiment Trend</h3>
-          <Line data={marketTrendData} options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false }
-            }
-          }} />
+        <div style={{
+          backgroundColor: '#242b3d',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <h3 style={{color: '#ffffff', marginBottom: '10px'}}>Market Sentiment</h3>
+          <div style={{fontSize: '2rem', fontWeight: 'bold', color: '#00ff88'}}>65%</div>
+          <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>Neutral conditions</div>
         </div>
       </div>
     </div>
   );
 
   const Watchdog = () => (
-    <div className="watchdog-section">
-      <div className="section-header">
-        <h2>🛡️ Treasury Watchdog</h2>
-        <p>AI-powered anomaly detection for treasury security</p>
+    <div>
+      <h2 style={{color: '#667eea', marginBottom: '20px'}}>🛡️ Treasury Watchdog</h2>
+      <p style={{color: '#a0aec0', marginBottom: '20px'}}>AI-powered anomaly detection for treasury security</p>
+
+      <div style={{
+        backgroundColor: '#242b3d',
+        padding: '20px',
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{color: '#ffffff', marginBottom: '15px'}}>Security Status</h3>
+        <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+          <span style={{color: '#00ff88', fontSize: '1.5rem', marginRight: '10px'}}>✓</span>
+          <span style={{color: '#a0aec0'}}>No suspicious activity detected</span>
+        </div>
+        <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>All transactions are within normal parameters</p>
       </div>
 
-      <div className="alerts-container">
-        <div className="alerts-header">
-          <h3>Recent Alerts</h3>
-          <button className="btn-secondary">Clear All</button>
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px'}}>
+        <div style={{
+          backgroundColor: '#242b3d',
+          padding: '15px',
+          borderRadius: '8px'
+        }}>
+          <h4 style={{color: '#ffffff', marginBottom: '10px'}}>Transaction Patterns</h4>
+          <div style={{marginBottom: '8px'}}>
+            <span style={{color: '#a0aec0'}}>Average Size: </span>
+            <span style={{color: '#00ff88'}}>$12,450</span>
+          </div>
+          <div style={{marginBottom: '8px'}}>
+            <span style={{color: '#a0aec0'}}>Frequency: </span>
+            <span style={{color: '#00ff88'}}>3.2/day</span>
+          </div>
+          <div>
+            <span style={{color: '#a0aec0'}}>Anomaly Score: </span>
+            <span style={{color: '#00ff88'}}>12/100</span>
+          </div>
         </div>
 
-        {watchdogAlerts.length === 0 ? (
-          <div className="no-alerts">
-            <span className="success-icon">✓</span>
-            <p>No suspicious activity detected</p>
+        <div style={{
+          backgroundColor: '#242b3d',
+          padding: '15px',
+          borderRadius: '8px'
+        }}>
+          <h4 style={{color: '#ffffff', marginBottom: '10px'}}>User Activity</h4>
+          <div style={{marginBottom: '8px'}}>
+            <span style={{color: '#a0aec0'}}>Active Users: </span>
+            <span style={{color: '#00ff88'}}>24</span>
           </div>
-        ) : (
-          <div className="alerts-list">
-            {watchdogAlerts.map((alert, index) => (
-              <div key={index} className={`alert-item ${alert.severity}`}>
-                <div className="alert-icon">
-                  {alert.severity === 'critical' && '🚨'}
-                  {alert.severity === 'warning' && '⚠️'}
-                  {alert.severity === 'info' && 'ℹ️'}
-                </div>
-                <div className="alert-content">
-                  <h4>{alert.title}</h4>
-                  <p>{alert.description}</p>
-                  <span className="alert-time">{alert.timestamp}</span>
-                </div>
-                <div className="alert-actions">
-                  <button className="btn-small">Review</button>
-                  {alert.severity === 'critical' && (
-                    <button className="btn-small danger">Freeze</button>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div style={{marginBottom: '8px'}}>
+            <span style={{color: '#a0aec0'}}>New Patterns: </span>
+            <span style={{color: '#00ff88'}}>2</span>
           </div>
-        )}
-      </div>
-
-      <div className="behavior-analysis">
-        <h3>Behavioral Analysis</h3>
-        <div className="analysis-grid">
-          <div className="analysis-card">
-            <h4>Transaction Patterns</h4>
-            <div className="metric">
-              <span className="label">Average Size:</span>
-              <span className="value">$12,450</span>
-            </div>
-            <div className="metric">
-              <span className="label">Frequency:</span>
-              <span className="value">3.2/day</span>
-            </div>
-            <div className="metric">
-              <span className="label">Anomaly Score:</span>
-              <span className="value safe">12/100</span>
-            </div>
-          </div>
-
-          <div className="analysis-card">
-            <h4>User Activity</h4>
-            <div className="metric">
-              <span className="label">Active Users:</span>
-              <span className="value">24</span>
-            </div>
-            <div className="metric">
-              <span className="label">New Patterns:</span>
-              <span className="value">2</span>
-            </div>
-            <div className="metric">
-              <span className="label">Risk Level:</span>
-              <span className="value medium">Medium</span>
-            </div>
+          <div>
+            <span style={{color: '#a0aec0'}}>Risk Level: </span>
+            <span style={{color: '#ffa500'}}>Medium</span>
           </div>
         </div>
       </div>
@@ -346,212 +125,355 @@ const SentinelDashboard = () => {
   );
 
   const Guardian = () => (
-    <div className="guardian-section">
-      <div className="section-header">
-        <h2>⚖️ Market Guardian</h2>
-        <p>Automated rebalancing based on market conditions</p>
-      </div>
+    <div>
+      <h2 style={{color: '#667eea', marginBottom: '20px'}}>⚖️ Market Guardian</h2>
+      <p style={{color: '#a0aec0', marginBottom: '20px'}}>Automated rebalancing based on market conditions</p>
 
-      <div className="market-overview">
-        <div className="market-stats">
-          <div className="market-stat">
-            <span className="coin-icon">₿</span>
-            <div>
-              <h4>Bitcoin</h4>
-              <div className="price">${marketData.btc.toLocaleString()}</div>
-              <span className="change positive">+2.4%</span>
-            </div>
+      <div style={{
+        backgroundColor: '#242b3d',
+        padding: '20px',
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{color: '#ffffff', marginBottom: '15px'}}>Market Overview</h3>
+        <div style={{display: 'flex', gap: '30px', flexWrap: 'wrap'}}>
+          <div>
+            <div style={{color: '#a0aec0', marginBottom: '5px'}}>₿ Bitcoin</div>
+            <div style={{color: '#ffffff', fontSize: '1.2rem', fontWeight: 'bold'}}>$45,000</div>
+            <div style={{color: '#00ff88'}}>+2.4%</div>
           </div>
-          <div className="market-stat">
-            <span className="coin-icon">Ξ</span>
-            <div>
-              <h4>Ethereum</h4>
-              <div className="price">${marketData.eth.toLocaleString()}</div>
-              <span className="change negative">-1.2%</span>
-            </div>
+          <div>
+            <div style={{color: '#a0aec0', marginBottom: '5px'}}>Ξ Ethereum</div>
+            <div style={{color: '#ffffff', fontSize: '1.2rem', fontWeight: 'bold'}}>$3,000</div>
+            <div style={{color: '#ff3366'}}>-1.2%</div>
           </div>
         </div>
       </div>
 
-      <div className="rebalancing-section">
-        <h3>Rebalancing Strategy</h3>
-        <div className="strategy-cards">
-          <div className="strategy-card">
-            <h4>Current Allocation</h4>
-            <div className="allocation-bars">
-              <div className="allocation-bar">
-                <span>Stablecoins</span>
-                <div className="bar">
-                  <div className="fill" style={{width: `${treasuryData.allocation.stablecoins}%`}}></div>
-                </div>
-                <span>{treasuryData.allocation.stablecoins}%</span>
-              </div>
-              <div className="allocation-bar">
-                <span>Major Cryptos</span>
-                <div className="bar">
-                  <div className="fill" style={{width: `${treasuryData.allocation.majors}%`}}></div>
-                </div>
-                <span>{treasuryData.allocation.majors}%</span>
-              </div>
-              <div className="allocation-bar">
-                <span>Altcoins</span>
-                <div className="bar">
-                  <div className="fill" style={{width: `${treasuryData.allocation.altcoins}%`}}></div>
-                </div>
-                <span>{treasuryData.allocation.altcoins}%</span>
-              </div>
+      <div style={{
+        backgroundColor: '#242b3d',
+        padding: '20px',
+        borderRadius: '8px'
+      }}>
+        <h3 style={{color: '#ffffff', marginBottom: '15px'}}>Portfolio Allocation</h3>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+          <div>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
+              <span style={{color: '#a0aec0'}}>Stablecoins</span>
+              <span style={{color: '#ffffff'}}>30%</span>
+            </div>
+            <div style={{
+              height: '8px',
+              backgroundColor: '#1a1f2e',
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: '30%',
+                height: '100%',
+                backgroundColor: '#00ff88'
+              }}></div>
             </div>
           </div>
+          <div>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
+              <span style={{color: '#a0aec0'}}>Major Cryptos</span>
+              <span style={{color: '#ffffff'}}>50%</span>
+            </div>
+            <div style={{
+              height: '8px',
+              backgroundColor: '#1a1f2e',
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: '50%',
+                height: '100%',
+                backgroundColor: '#667eea'
+              }}></div>
+            </div>
+          </div>
+          <div>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
+              <span style={{color: '#a0aec0'}}>Altcoins</span>
+              <span style={{color: '#ffffff'}}>20%</span>
+            </div>
+            <div style={{
+              height: '8px',
+              backgroundColor: '#1a1f2e',
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: '20%',
+                height: '100%',
+                backgroundColor: '#764ba2'
+              }}></div>
+            </div>
+          </div>
+        </div>
 
-          <div className="strategy-card">
-            <h4>Recommended Adjustment</h4>
-            <div className="recommendation">
-              {marketData.marketSentiment < 40 ? (
-                <>
-                  <span className="action sell">Increase Stablecoins</span>
-                  <p>Market conditions suggest defensive positioning</p>
-                </>
-              ) : marketData.marketSentiment > 70 ? (
-                <>
-                  <span className="action buy">Increase Risk Assets</span>
-                  <p>Favorable conditions for growth assets</p>
-                </>
-              ) : (
-                <>
-                  <span className="action hold">Maintain Current</span>
-                  <p>Market conditions are neutral</p>
-                </>
-              )}
-            </div>
-            <button className="btn-primary">Execute Rebalancing</button>
-          </div>
+        <div style={{
+          marginTop: '20px',
+          padding: '15px',
+          backgroundColor: '#1a1f2e',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          <div style={{color: '#00ff88', marginBottom: '10px'}}>🟢 Maintain Current Allocation</div>
+          <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>Market conditions are neutral - no rebalancing needed</p>
         </div>
       </div>
     </div>
   );
 
   const Profiler = () => (
-    <div className="profiler-section">
-      <div className="section-header">
-        <h2>👤 Risk Profiler</h2>
-        <p>Personalized allocation based on your risk tolerance</p>
+    <div>
+      <h2 style={{color: '#667eea', marginBottom: '20px'}}>👤 Risk Profiler</h2>
+      <p style={{color: '#a0aec0', marginBottom: '20px'}}>Personalized allocation based on your risk tolerance</p>
+
+      <div style={{
+        backgroundColor: '#242b3d',
+        padding: '30px',
+        borderRadius: '8px',
+        textAlign: 'center',
+        marginBottom: '20px'
+      }}>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          backgroundColor: '#1a1f2e',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 15px auto',
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          color: '#ffa500'
+        }}>
+          65
+        </div>
+        <h3 style={{color: '#ffffff', marginBottom: '10px'}}>Your Risk Profile: Balanced</h3>
+        <p style={{color: '#a0aec0'}}>Moderate risk/reward strategy</p>
       </div>
 
-      {riskProfile.level === 'Not Set' ? (
-        <div className="quiz-prompt">
-          <h3>Complete Your Risk Assessment</h3>
-          <p>Take our quick quiz to determine your optimal treasury allocation</p>
-          <button 
-            className="btn-primary large"
-            onClick={() => window.location.href = '/risk-tolerance-quiz.html'}
-          >
-            Start Risk Assessment
-          </button>
-        </div>
-      ) : (
-        <div className="profile-details">
-          <div className="profile-header">
-            <div className="profile-score">
-              <div className="score-circle">
-                <span className="score">{riskProfile.score}</span>
-                <span className="max">/100</span>
-              </div>
-            </div>
-            <div className="profile-info">
-              <h3>Your Risk Profile: {riskProfile.level}</h3>
-              <p>Last updated: 2 days ago</p>
-            </div>
+      <div style={{
+        backgroundColor: '#242b3d',
+        padding: '20px',
+        borderRadius: '8px'
+      }}>
+        <h3 style={{color: '#ffffff', marginBottom: '15px'}}>Profile Settings</h3>
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px'}}>
+          <div style={{textAlign: 'center'}}>
+            <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>Risk Appetite</div>
+            <div style={{color: '#ffffff', fontWeight: 'bold'}}>Moderate</div>
           </div>
-
-          {riskProfile.settings && (
-            <div className="settings-grid">
-              <div className="setting-card">
-                <h4>Risk Appetite</h4>
-                <div className="setting-value">{riskProfile.settings.riskAppetite}</div>
-              </div>
-              <div className="setting-card">
-                <h4>Min Stablecoin %</h4>
-                <div className="setting-value">{riskProfile.settings.minStablecoin}%</div>
-              </div>
-              <div className="setting-card">
-                <h4>Max Stablecoin %</h4>
-                <div className="setting-value">{riskProfile.settings.maxStablecoin}%</div>
-              </div>
-              <div className="setting-card">
-                <h4>Rebalance Cooldown</h4>
-                <div className="setting-value">{riskProfile.settings.rebalanceCooldown / 3600}h</div>
-              </div>
-              <div className="setting-card">
-                <h4>Circuit Breaker</h4>
-                <div className="setting-value">
-                  {riskProfile.settings.circuitBreakerEnabled ? 'Enabled' : 'Disabled'}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button className="btn-secondary">Update Profile</button>
+          <div style={{textAlign: 'center'}}>
+            <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>Min Stablecoin</div>
+            <div style={{color: '#ffffff', fontWeight: 'bold'}}>20%</div>
+          </div>
+          <div style={{textAlign: 'center'}}>
+            <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>Max Stablecoin</div>
+            <div style={{color: '#ffffff', fontWeight: 'bold'}}>40%</div>
+          </div>
+          <div style={{textAlign: 'center'}}>
+            <div style={{color: '#a0aec0', fontSize: '0.9rem'}}>Circuit Breaker</div>
+            <div style={{color: '#00ff88', fontWeight: 'bold'}}>Enabled</div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 
-  // Main render
   return (
-    <div className="sentinel-dashboard">
-      <header className="dashboard-header">
-        <div className="header-content">
-          <div className="logo">
-            <h1>🛡️ SentinelAI</h1>
-            <span className="tagline">AI DAO Treasury Management</span>
-          </div>
-          <nav className="nav-tabs">
-            <button 
-              className={activeTab === 'overview' ? 'active' : ''}
-              onClick={() => setActiveTab('overview')}
-            >
-              Overview
-            </button>
-            <button 
-              className={activeTab === 'watchdog' ? 'active' : ''}
-              onClick={() => setActiveTab('watchdog')}
-            >
-              Watchdog
-            </button>
-            <button 
-              className={activeTab === 'guardian' ? 'active' : ''}
-              onClick={() => setActiveTab('guardian')}
-            >
-              Guardian
-            </button>
-            <button 
-              className={activeTab === 'profiler' ? 'active' : ''}
-              onClick={() => setActiveTab('profiler')}
-            >
-              Profiler
-            </button>
-          </nav>
-          <div className="header-actions">
-            <span className="connection-status connected">
-              <span className="dot"></span> Midnight Network
-            </span>
-            <button className="btn-icon">⚙️</button>
-          </div>
+    <div style={{
+      padding: '20px',
+      backgroundColor: '#0f1419',
+      color: '#ffffff',
+      minHeight: '100vh',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <header style={{
+        backgroundColor: '#1a1f2e',
+        padding: '20px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div>
+          <h1 style={{color: '#667eea', margin: '0 0 5px 0'}}>🛡️ SentinelAI</h1>
+          <span style={{color: '#a0aec0'}}>AI DAO Treasury Management</span>
+        </div>
+        <div style={{color: '#00ff88'}}>
+          <span style={{marginRight: '5px'}}>●</span> Midnight Network
         </div>
       </header>
 
-      <main className="dashboard-main">
+      <nav style={{
+        display: 'flex',
+        gap: '10px',
+        marginBottom: '30px',
+        flexWrap: 'wrap'
+      }}>
+        <button
+          style={{
+            backgroundColor: activeTab === 'overview' ? '#667eea' : '#242b3d',
+            color: activeTab === 'overview' ? 'white' : '#a0aec0',
+            border: activeTab === 'overview' ? 'none' : '1px solid #667eea',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: activeTab === 'overview' ? 'bold' : 'normal'
+          }}
+          onClick={() => setActiveTab('overview')}
+        >
+          Overview
+        </button>
+        <button
+          style={{
+            backgroundColor: activeTab === 'watchdog' ? '#667eea' : '#242b3d',
+            color: activeTab === 'watchdog' ? 'white' : '#a0aec0',
+            border: activeTab === 'watchdog' ? 'none' : '1px solid #667eea',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: activeTab === 'watchdog' ? 'bold' : 'normal'
+          }}
+          onClick={() => setActiveTab('watchdog')}
+        >
+          Watchdog
+        </button>
+        <button
+          style={{
+            backgroundColor: activeTab === 'guardian' ? '#667eea' : '#242b3d',
+            color: activeTab === 'guardian' ? 'white' : '#a0aec0',
+            border: activeTab === 'guardian' ? 'none' : '1px solid #667eea',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: activeTab === 'guardian' ? 'bold' : 'normal'
+          }}
+          onClick={() => setActiveTab('guardian')}
+        >
+          Guardian
+        </button>
+        <button
+          style={{
+            backgroundColor: activeTab === 'profiler' ? '#667eea' : '#242b3d',
+            color: activeTab === 'profiler' ? 'white' : '#a0aec0',
+            border: activeTab === 'profiler' ? 'none' : '1px solid #667eea',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: activeTab === 'profiler' ? 'bold' : 'normal'
+          }}
+          onClick={() => setActiveTab('profiler')}
+        >
+          Profiler
+        </button>
+      </nav>
+
+      <main style={{
+        backgroundColor: '#1a1f2e',
+        padding: '30px',
+        borderRadius: '8px'
+      }}>
         {activeTab === 'overview' && <Overview />}
         {activeTab === 'watchdog' && <Watchdog />}
         {activeTab === 'guardian' && <Guardian />}
         {activeTab === 'profiler' && <Profiler />}
+
+        <div style={{
+          backgroundColor: '#242b3d',
+          padding: '30px',
+          borderRadius: '8px',
+          textAlign: 'center',
+          marginTop: '30px'
+        }}>
+          <h3 style={{color: '#667eea', marginBottom: '15px'}}>
+            🛡️ SentinelAI AI Governance System
+          </h3>
+          <p style={{color: '#a0aec0', marginBottom: '20px'}}>
+            Complete Charles Hoskinson 3-Level AI Framework for DAO Treasury Management
+          </p>
+          <div style={{display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap'}}>
+            <div 
+              style={{
+                backgroundColor: '#1a1f2e',
+                padding: '15px',
+                borderRadius: '8px',
+                minWidth: '200px',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                border: activeTab === 'guardian' ? '2px solid #00ff88' : '2px solid transparent'
+              }}
+              onClick={() => setActiveTab('guardian')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 255, 136, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <h4 style={{color: '#00ff88', marginBottom: '8px'}}>Level 1: Strategic Planning</h4>
+              <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>Market Guardian AI</p>
+            </div>
+            <div 
+              style={{
+                backgroundColor: '#1a1f2e',
+                padding: '15px',
+                borderRadius: '8px',
+                minWidth: '200px',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                border: activeTab === 'profiler' ? '2px solid #ffa500' : '2px solid transparent'
+              }}
+              onClick={() => setActiveTab('profiler')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 165, 0, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <h4 style={{color: '#ffa500', marginBottom: '8px'}}>Level 2: Budget Estimation</h4>
+              <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>Risk Profiler AI</p>
+            </div>
+            <div 
+              style={{
+                backgroundColor: '#1a1f2e',
+                padding: '15px',
+                borderRadius: '8px',
+                minWidth: '200px',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                border: activeTab === 'watchdog' ? '2px solid #667eea' : '2px solid transparent'
+              }}
+              onClick={() => setActiveTab('watchdog')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <h4 style={{color: '#667eea', marginBottom: '8px'}}>Level 3: Distribution Regulation</h4>
+              <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>Treasury Watchdog AI</p>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );
 };
-
-// Mount the app
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<SentinelDashboard />);
 
 export default SentinelDashboard;
