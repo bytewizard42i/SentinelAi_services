@@ -2,11 +2,637 @@ import React, { useState } from 'react';
 
 const SentinelDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminModalContent, setAdminModalContent] = useState('');
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [expertiseLevel, setExpertiseLevel] = useState('newbie'); // 'newbie' or 'expert'
+  const [questionnaireStep, setQuestionnaireStep] = useState(0);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState({ title: '', description: '' });
+  
+  // Admin settings for each page
+  const [adminSettings, setAdminSettings] = useState({
+    overview: {
+      refreshInterval: 30,
+      alertThreshold: 1000000,
+      displayCurrency: 'USD'
+    },
+    watchdog: {
+      anomalyThreshold: 15,
+      maxTransactionSize: 100000,
+      alertDelay: 5,
+      circuitBreakerEnabled: true,
+      suspiciousPatternDetection: true
+    },
+    guardian: {
+      rebalanceThreshold: 5,
+      marketVolatilityLimit: 30,
+      autoRebalance: false,
+      rebalanceFrequency: 'daily',
+      slippageTolerance: 0.5
+    },
+    profiler: {
+      minStablecoin: 20,
+      maxStablecoin: 40,
+      riskUpdateFrequency: 'weekly',
+      autoAdjust: true,
+      emergencyMode: false
+    }
+  });
+
+  // Questionnaire questions based on expertise level
+  const getQuestions = () => {
+    if (expertiseLevel === 'newbie') {
+      return [
+        {
+          question: "How comfortable are you with potential losses?",
+          options: ["Very uncomfortable", "Somewhat uncomfortable", "Neutral", "Comfortable", "Very comfortable"]
+        },
+        {
+          question: "What's your investment timeline?",
+          options: ["Less than 1 month", "1-3 months", "3-6 months", "6-12 months", "Over 1 year"]
+        },
+        {
+          question: "How often do you want to check your portfolio?",
+          options: ["Multiple times daily", "Daily", "Weekly", "Monthly", "Rarely"]
+        },
+        {
+          question: "What's most important to you?",
+          options: ["Safety of funds", "Steady growth", "Balanced approach", "High growth", "Maximum returns"]
+        },
+        {
+          question: "How would you react to a 20% drop in value?",
+          options: ["Sell immediately", "Sell some", "Hold", "Buy a little more", "Buy significantly more"]
+        }
+      ];
+    } else {
+      // Expert questions
+      return [
+        {
+          question: "Preferred Sharpe ratio target?",
+          options: ["< 0.5", "0.5 - 1.0", "1.0 - 1.5", "1.5 - 2.0", "> 2.0"]
+        },
+        {
+          question: "Maximum drawdown tolerance?",
+          options: ["5%", "10%", "20%", "30%", "> 30%"]
+        },
+        {
+          question: "Correlation preference for portfolio assets?",
+          options: ["High positive", "Low positive", "Near zero", "Negative", "Mixed"]
+        },
+        {
+          question: "Preferred rebalancing strategy?",
+          options: ["Threshold-based", "Calendar-based", "Dynamic", "Volatility-triggered", "Hybrid"]
+        },
+        {
+          question: "Position sizing methodology?",
+          options: ["Equal weight", "Market cap", "Risk parity", "Kelly criterion", "Custom algorithm"]
+        }
+      ];
+    }
+  };
+
+  const calculateRiskScore = () => {
+    const answers = Object.values(userAnswers);
+    const sum = answers.reduce((acc, val) => acc + val, 0);
+    const maxScore = answers.length * 4;
+    return Math.round((sum / maxScore) * 100);
+  };
+
+  const openAdminSettings = (section) => {
+    setAdminModalContent(section);
+    setShowAdminModal(true);
+  };
+
+  const updateAdminSetting = (section, key, value) => {
+    setAdminSettings(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [key]: value
+      }
+    }));
+  };
+
+  // Help text for admin settings
+  const settingsHelpText = {
+    overview: {
+      refreshInterval: {
+        title: "Refresh Interval",
+        description: "Sets how often (in seconds) the dashboard data is refreshed. Lower values provide more real-time updates but may increase server load. Recommended: 30-60 seconds for normal operation, 5-10 seconds for high-frequency trading."
+      },
+      alertThreshold: {
+        title: "Alert Threshold",
+        description: "The treasury value threshold (in USD) that triggers notifications. When treasury value exceeds this amount, you'll receive alerts for significant changes. Set based on your treasury size - typically 10-20% of total value."
+      },
+      displayCurrency: {
+        title: "Display Currency",
+        description: "Choose the currency for displaying values across the dashboard. Options: USD, EUR, GBP, JPY, etc. This only affects display - all calculations remain in the base currency."
+      }
+    },
+    watchdog: {
+      anomalyThreshold: {
+        title: "Anomaly Threshold",
+        description: "The sensitivity score (0-100) for detecting unusual patterns. Lower values (10-20) detect more anomalies but may have false positives. Higher values (30-50) reduce noise but may miss subtle threats."
+      },
+      maxTransactionSize: {
+        title: "Maximum Transaction Size",
+        description: "The largest single transaction allowed (in USD) before requiring additional approval. This prevents large unauthorized withdrawals. Set to 2-5% of treasury for safety."
+      },
+      alertDelay: {
+        title: "Alert Delay",
+        description: "Time in minutes before sending duplicate alerts for the same issue. Prevents alert fatigue while ensuring important notifications aren't missed. Range: 5-30 minutes."
+      },
+      circuitBreakerEnabled: {
+        title: "Circuit Breaker",
+        description: "Emergency stop mechanism that halts all transactions when critical anomalies are detected. When enabled, protects against flash attacks and cascading failures. Highly recommended to keep ON."
+      },
+      suspiciousPatternDetection: {
+        title: "Suspicious Pattern Detection",
+        description: "AI-powered behavioral analysis that learns normal transaction patterns and flags deviations. Includes time-based patterns, amount clustering, and recipient analysis. Keep enabled for maximum security."
+      }
+    },
+    guardian: {
+      rebalanceThreshold: {
+        title: "Rebalance Threshold",
+        description: "Percentage deviation from target allocation that triggers rebalancing. Lower values (3-5%) maintain tighter allocations but increase trading. Higher values (10-15%) reduce costs but allow more drift."
+      },
+      marketVolatilityLimit: {
+        title: "Market Volatility Limit",
+        description: "Maximum acceptable market volatility (%) before pausing rebalancing. Prevents rebalancing during extreme market conditions. Typical range: 20-40% based on risk tolerance."
+      },
+      autoRebalance: {
+        title: "Auto Rebalance",
+        description: "Enables automatic portfolio rebalancing without manual approval. When ON, executes trades automatically based on strategy. When OFF, only suggests rebalancing actions for manual approval."
+      },
+      rebalanceFrequency: {
+        title: "Rebalance Frequency",
+        description: "How often to check and execute rebalancing. Options: hourly (aggressive), daily (balanced), weekly (conservative). More frequent = higher costs but tighter tracking."
+      },
+      slippageTolerance: {
+        title: "Slippage Tolerance",
+        description: "Maximum acceptable price slippage (%) during trades. Protects against unfavorable price movements during execution. Range: 0.1-1% for liquid assets, 1-3% for illiquid assets."
+      }
+    },
+    profiler: {
+      minStablecoin: {
+        title: "Minimum Stablecoin %",
+        description: "The minimum percentage of portfolio that must be held in stablecoins for safety. Acts as a buffer against market crashes. Conservative: 40-60%, Balanced: 20-40%, Aggressive: 10-20%."
+      },
+      maxStablecoin: {
+        title: "Maximum Stablecoin %",
+        description: "The maximum percentage allowed in stablecoins to ensure growth potential. Prevents over-conservative allocation. Conservative: 80%, Balanced: 60%, Aggressive: 40%."
+      },
+      riskUpdateFrequency: {
+        title: "Risk Update Frequency",
+        description: "How often to recalculate and update risk profiles based on market conditions and user behavior. Options: daily (responsive), weekly (balanced), monthly (stable)."
+      },
+      autoAdjust: {
+        title: "Auto Adjust",
+        description: "Automatically adjusts risk parameters based on market conditions and AI analysis. When enabled, provides dynamic risk management. Disable for manual control only."
+      },
+      emergencyMode: {
+        title: "Emergency Mode",
+        description: "Activates conservative emergency protocols: max stablecoin allocation, no risky trades, enhanced monitoring. Use during black swan events or system issues. Automatically suggests activation during crises."
+      }
+    }
+  };
+
+  const showHelpTooltip = (section, key) => {
+    const helpInfo = settingsHelpText[section]?.[key];
+    if (helpInfo) {
+      setTooltipContent(helpInfo);
+      setShowInfoTooltip(true);
+    }
+  };
+
+  // Info Tooltip Component
+  const InfoTooltip = () => {
+    if (!showInfoTooltip) return null;
+    
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2000
+      }}>
+        <div style={{
+          backgroundColor: '#1a1f2e',
+          padding: '30px',
+          borderRadius: '12px',
+          maxWidth: '500px',
+          width: '90%',
+          border: '2px solid #00ff88'
+        }}>
+          <h3 style={{color: '#00ff88', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px'}}>
+            <span style={{fontSize: '1.5rem'}}>ℹ️</span> {tooltipContent.title}
+          </h3>
+          <p style={{color: '#ffffff', lineHeight: '1.6', marginBottom: '20px'}}>
+            {tooltipContent.description}
+          </p>
+          <button
+            onClick={() => setShowInfoTooltip(false)}
+            style={{
+              backgroundColor: '#00ff88',
+              color: '#1a1f2e',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              width: '100%'
+            }}
+          >
+            Got it!
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Admin Settings Modal Component
+  const AdminSettingsModal = () => {
+    if (!showAdminModal) return null;
+    
+    const currentSettings = adminSettings[adminModalContent];
+    
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          backgroundColor: '#1a1f2e',
+          padding: '30px',
+          borderRadius: '12px',
+          maxWidth: '600px',
+          width: '90%',
+          maxHeight: '80vh',
+          overflow: 'auto',
+          border: '2px solid #667eea'
+        }}>
+          <h2 style={{color: '#667eea', marginBottom: '20px'}}>
+            ⚙️ Admin Settings - {adminModalContent.charAt(0).toUpperCase() + adminModalContent.slice(1)}
+          </h2>
+          
+          <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+            {Object.entries(currentSettings || {}).map(([key, value]) => (
+              <div key={key} style={{
+                backgroundColor: '#242b3d',
+                padding: '15px',
+                borderRadius: '8px'
+              }}>
+                <label style={{
+                  color: '#a0aec0', 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px'
+                }}>
+                  <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                  <button
+                    onClick={() => showHelpTooltip(adminModalContent, key)}
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: '1px solid #667eea',
+                      color: '#667eea',
+                      borderRadius: '50%',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      padding: 0,
+                      marginLeft: '10px'
+                    }}
+                    title="Click for more information"
+                  >
+                    i
+                  </button>
+                </label>
+                {typeof value === 'boolean' ? (
+                  <button
+                    onClick={() => updateAdminSetting(adminModalContent, key, !value)}
+                    style={{
+                      backgroundColor: value ? '#00ff88' : '#ff3366',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {value ? 'Enabled' : 'Disabled'}
+                  </button>
+                ) : typeof value === 'number' ? (
+                  <input
+                    type="number"
+                    value={value}
+                    onChange={(e) => updateAdminSetting(adminModalContent, key, Number(e.target.value))}
+                    style={{
+                      backgroundColor: '#1a1f2e',
+                      color: '#ffffff',
+                      border: '1px solid #667eea',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      width: '100%'
+                    }}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => updateAdminSetting(adminModalContent, key, e.target.value)}
+                    style={{
+                      backgroundColor: '#1a1f2e',
+                      color: '#ffffff',
+                      border: '1px solid #667eea',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      width: '100%'
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div style={{marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-end'}}>
+            <button
+              onClick={() => setShowAdminModal(false)}
+              style={{
+                backgroundColor: '#667eea',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Save & Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Questionnaire Modal Component
+  const QuestionnaireModal = () => {
+    if (!showQuestionnaire) return null;
+    
+    const questions = getQuestions();
+    const currentQuestion = questions[questionnaireStep];
+    
+    if (questionnaireStep >= questions.length) {
+      const riskScore = calculateRiskScore();
+      let riskProfile = 'Conservative';
+      if (riskScore > 70) riskProfile = 'Aggressive';
+      else if (riskScore > 40) riskProfile = 'Balanced';
+      
+      return (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: '#1a1f2e',
+            padding: '40px',
+            borderRadius: '12px',
+            maxWidth: '500px',
+            width: '90%',
+            textAlign: 'center',
+            border: '2px solid #00ff88'
+          }}>
+            <h2 style={{color: '#00ff88', marginBottom: '20px'}}>📊 Profile Complete!</h2>
+            <div style={{
+              width: '120px',
+              height: '120px',
+              borderRadius: '50%',
+              backgroundColor: '#242b3d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px auto',
+              fontSize: '3rem',
+              fontWeight: 'bold',
+              color: riskScore > 70 ? '#ff3366' : riskScore > 40 ? '#ffa500' : '#00ff88'
+            }}>
+              {riskScore}
+            </div>
+            <h3 style={{color: '#ffffff', marginBottom: '10px'}}>Your Risk Profile: {riskProfile}</h3>
+            <p style={{color: '#a0aec0', marginBottom: '30px'}}>
+              {riskProfile === 'Conservative' && "Focus on capital preservation with stable returns"}
+              {riskProfile === 'Balanced' && "Balanced approach between growth and stability"}
+              {riskProfile === 'Aggressive' && "High growth potential with increased volatility"}
+            </p>
+            <button
+              onClick={() => {
+                setShowQuestionnaire(false);
+                setQuestionnaireStep(0);
+                setUserAnswers({});
+              }}
+              style={{
+                backgroundColor: '#00ff88',
+                color: '#1a1f2e',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              Apply Profile
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          backgroundColor: '#1a1f2e',
+          padding: '40px',
+          borderRadius: '12px',
+          maxWidth: '600px',
+          width: '90%',
+          border: '2px solid #667eea'
+        }}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+            <h2 style={{color: '#667eea'}}>Risk Profile Assessment</h2>
+            <div style={{display: 'flex', gap: '10px'}}>
+              <button
+                onClick={() => setExpertiseLevel('newbie')}
+                style={{
+                  backgroundColor: expertiseLevel === 'newbie' ? '#00ff88' : '#242b3d',
+                  color: expertiseLevel === 'newbie' ? '#1a1f2e' : '#a0aec0',
+                  border: '1px solid #00ff88',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                👶 Newbie
+              </button>
+              <button
+                onClick={() => setExpertiseLevel('expert')}
+                style={{
+                  backgroundColor: expertiseLevel === 'expert' ? '#ff3366' : '#242b3d',
+                  color: expertiseLevel === 'expert' ? 'white' : '#a0aec0',
+                  border: '1px solid #ff3366',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                🎓 Expert
+              </button>
+            </div>
+          </div>
+          
+          <div style={{marginBottom: '30px'}}>
+            <div style={{display: 'flex', gap: '5px', marginBottom: '20px'}}>
+              {questions.map((_, index) => (
+                <div key={index} style={{
+                  flex: 1,
+                  height: '4px',
+                  backgroundColor: index <= questionnaireStep ? '#667eea' : '#242b3d',
+                  borderRadius: '2px'
+                }}></div>
+              ))}
+            </div>
+            <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>
+              Question {questionnaireStep + 1} of {questions.length}
+            </p>
+          </div>
+          
+          <h3 style={{color: '#ffffff', marginBottom: '20px'}}>{currentQuestion.question}</h3>
+          
+          <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '30px'}}>
+            {currentQuestion.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setUserAnswers({...userAnswers, [questionnaireStep]: index});
+                  setTimeout(() => setQuestionnaireStep(questionnaireStep + 1), 200);
+                }}
+                style={{
+                  backgroundColor: userAnswers[questionnaireStep] === index ? '#667eea' : '#242b3d',
+                  color: '#ffffff',
+                  border: '1px solid #667eea',
+                  padding: '12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          
+          <div style={{display: 'flex', justifyContent: 'space-between'}}>
+            {questionnaireStep > 0 && (
+              <button
+                onClick={() => setQuestionnaireStep(questionnaireStep - 1)}
+                style={{
+                  backgroundColor: '#242b3d',
+                  color: '#a0aec0',
+                  border: '1px solid #667eea',
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Back
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setShowQuestionnaire(false);
+                setQuestionnaireStep(0);
+                setUserAnswers({});
+              }}
+              style={{
+                backgroundColor: '#ff3366',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                marginLeft: 'auto'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Component sections
   const Overview = () => (
     <div>
-      <h2 style={{color: '#667eea', marginBottom: '20px'}}>Dashboard Overview</h2>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+        <h2 style={{color: '#667eea'}}>Dashboard Overview</h2>
+        <button
+          onClick={() => openAdminSettings('overview')}
+          style={{
+            backgroundColor: '#764ba2',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          ⚙️ Admin Settings
+        </button>
+      </div>
 
       <div style={{
         display: 'grid',
@@ -63,8 +689,28 @@ const SentinelDashboard = () => {
 
   const Watchdog = () => (
     <div>
-      <h2 style={{color: '#667eea', marginBottom: '20px'}}>🛡️ Treasury Watchdog</h2>
-      <p style={{color: '#a0aec0', marginBottom: '20px'}}>AI-powered anomaly detection for treasury security</p>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+        <div>
+          <h2 style={{color: '#667eea', marginBottom: '5px'}}>🛡️ Treasury Watchdog</h2>
+          <p style={{color: '#a0aec0'}}>AI-powered anomaly detection for treasury security</p>
+        </div>
+        <button
+          onClick={() => openAdminSettings('watchdog')}
+          style={{
+            backgroundColor: '#764ba2',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          ⚙️ Admin Settings
+        </button>
+      </div>
 
       <div style={{
         backgroundColor: '#242b3d',
@@ -126,8 +772,28 @@ const SentinelDashboard = () => {
 
   const Guardian = () => (
     <div>
-      <h2 style={{color: '#667eea', marginBottom: '20px'}}>⚖️ Market Guardian</h2>
-      <p style={{color: '#a0aec0', marginBottom: '20px'}}>Automated rebalancing based on market conditions</p>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+        <div>
+          <h2 style={{color: '#667eea', marginBottom: '5px'}}>⚖️ Market Guardian</h2>
+          <p style={{color: '#a0aec0'}}>Automated rebalancing based on market conditions</p>
+        </div>
+        <button
+          onClick={() => openAdminSettings('guardian')}
+          style={{
+            backgroundColor: '#764ba2',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          ⚙️ Admin Settings
+        </button>
+      </div>
 
       <div style={{
         backgroundColor: '#242b3d',
@@ -229,8 +895,47 @@ const SentinelDashboard = () => {
 
   const Profiler = () => (
     <div>
-      <h2 style={{color: '#667eea', marginBottom: '20px'}}>👤 Risk Profiler</h2>
-      <p style={{color: '#a0aec0', marginBottom: '20px'}}>Personalized allocation based on your risk tolerance</p>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+        <div>
+          <h2 style={{color: '#667eea', marginBottom: '5px'}}>👤 Risk Profiler</h2>
+          <p style={{color: '#a0aec0'}}>Personalized allocation based on your risk tolerance</p>
+        </div>
+        <div style={{display: 'flex', gap: '10px'}}>
+          <button
+            onClick={() => setShowQuestionnaire(true)}
+            style={{
+              backgroundColor: '#00ff88',
+              color: '#1a1f2e',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+          >
+            🤖 Auto Profile Investor
+          </button>
+          <button
+            onClick={() => openAdminSettings('profiler')}
+            style={{
+              backgroundColor: '#764ba2',
+              color: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+          >
+            ⚙️ Admin Settings
+          </button>
+        </div>
+      </div>
 
       <div style={{
         backgroundColor: '#242b3d',
@@ -472,6 +1177,11 @@ const SentinelDashboard = () => {
           </div>
         </div>
       </main>
+      
+      {/* Render Modals */}
+      <AdminSettingsModal />
+      <QuestionnaireModal />
+      <InfoTooltip />
     </div>
   );
 };
