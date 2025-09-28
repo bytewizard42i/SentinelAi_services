@@ -4,9 +4,9 @@ services:
   # Midnight Proof Server - Version 4.0.0 (Official)
   proof-server:
     image: midnightnetwork/proof-server:4.0.0
-    container_name: sentinel-proof-server
+    container_name: sentinel-proof-server-v2
     ports:
-      - "6301:6300"
+      - "6302:6300"
     environment:
       - RUST_LOG=info
       - PROOF_SERVER_PORT=6300
