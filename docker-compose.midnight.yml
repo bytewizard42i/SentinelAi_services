@@ -1,0 +1,221 @@
+version: '3.8'
+
+services:
+  # Midnight Proof Server - Version 4.0.0 (Official)
+  proof-server:
+    image: midnightnetwork/proof-server:4.0.0
+    container_name: sentinel-proof-server
+    ports:
+      - "6301:6300"
+    environment:
+      - RUST_LOG=info
+      - PROOF_SERVER_PORT=6300
+    command: ["midnight-proof-server", "--network", "testnet"]
+    volumes:
+      - proof-data:/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6300/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentinel-postgres
+    environment:
+      - POSTGRES_USER=sentinel
+      - POSTGRES_PASSWORD=sentinelpass
+      - POSTGRES_DB=sentineldb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service with Midnight Integration
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.midnight
+    container_name: sentinel-backend
+    ports:
+      - "3000:3000"
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - MIDNIGHT_NETWORK=testnet
+      - MN_NODE=https://rpc.testnet-02.midnight.network
+      - INDEXER=https://indexer.testnet-02.midnight.network/api/v1/graphql
+      - INDEXER_WS=wss://indexer.testnet-02.midnight.network/api/v1/graphql/ws
+      - PROOF_SERVER=http://proof-server:6300
+      - STORAGE_BASE_DIR=/app/.storage
+      - AGENT_ID=sentinel-agent
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=sentinel
+      - POSTGRES_PASSWORD=sentinelpass
+      - POSTGRES_DB=sentineldb
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./backend:/app
+      - ./storage:/app/.storage
+      - backend-node-modules:/app/node_modules
+    depends_on:
+      proof-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Dashboard
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sentinel-frontend
+    ports:
+      - "3001:80"
+    environment:
+      - REACT_APP_API_URL=http://backend:3000
+      - REACT_APP_WS_URL=ws://backend:8080
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: sentinel-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Prometheus Monitoring (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sentinel-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Grafana Dashboard (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sentinel-grafana
+    ports:
+      - "9001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=sentineladmin
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+networks:
+  sentinel-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  proof-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  backend-node-modules:
+    driver: local
+  frontend-node-modules:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local

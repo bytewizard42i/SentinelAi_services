@@ -82,7 +82,7 @@ const SentinelDashboard = () => {
   }, []);
 
   const connectWebSocket = () => {
-    ws = new WebSocket('ws://localhost:3000/ws');
+    ws = new WebSocket('ws://localhost:8080');
     
     ws.onopen = () => {
       console.log('Connected to SentinelAI WebSocket');
@@ -100,14 +100,20 @@ const SentinelDashboard = () => {
 
   const handleWebSocketMessage = (data) => {
     switch (data.type) {
-      case 'treasury_update':
-        setTreasuryData(data.payload);
+      case 'init':
+        if (data.data.treasury) setTreasuryData(data.data.treasury);
+        if (data.data.alerts) setWatchdogAlerts(data.data.alerts);
+        if (data.data.market) setMarketData(data.data.market);
         break;
-      case 'watchdog_alert':
-        setWatchdogAlerts(prev => [data.payload, ...prev].slice(0, 10));
+      case 'action':
+        // Handle orchestrator actions
+        console.log('Orchestrator action:', data.data);
         break;
-      case 'market_update':
-        setMarketData(data.payload);
+      case 'alert':
+        setWatchdogAlerts(prev => [data.data, ...prev].slice(0, 10));
+        break;
+      case 'rebalance':
+        setTreasuryData(data.data);
         break;
       default:
         break;
@@ -116,11 +122,11 @@ const SentinelDashboard = () => {
 
   const loadUserProfile = async () => {
     try {
-      const response = await fetch('/api/user/profile');
+      const response = await fetch(`${API_URL}/api/profiler/profile`);
       const data = await response.json();
       setUserData(data);
-      if (data.riskProfile) {
-        setRiskProfile(data.riskProfile);
+      if (data.profile) {
+        setRiskProfile(data.profile);
       }
     } catch (error) {
       console.error('Failed to load user profile:', error);

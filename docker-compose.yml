@@ -1,15 +1,15 @@
 version: '3.8'
 
 services:
-  # Midnight Proof Server v4 - Core Blockchain Proofs
+  # Midnight Proof Server - Latest Version
   proof-server:
     image: midnightnetwork/proof-server:latest
     container_name: sentinel-proof-server
     ports:
       - "6300:6300"
     environment:
-      - PROOF_SERVER_PORT=6300
-      - NETWORK=testnet
+      - RUST_LOG=info
+    command: ["midnight-proof-server", "--network", "testnet"]
     volumes:
       - proof-data:/data
     networks:
