@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  # Real Midnight Proof Server
+  proof-server:
+    image: midnightnetwork/proof-server:4.0.0
+    container_name: midnight-proof
+    ports:
+      - "6300:6300"
+    restart: unless-stopped
+    profiles: ["real"]
+    environment:
+      - RUST_LOG=info
+      - PROOF_SERVER_PORT=6300
+    command: ["midnight-proof-server", "--network", "testnet"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6300/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - sentinel-network
+
+  # Mock Proof Server for Demo Mode
+  mock-proof:
+    image: node:22-alpine
+    container_name: mock-proof-server
+    working_dir: /app
+    volumes:
+      - /home/js/utils_Midnight/utils_HydraJTS:/app
+    command: sh -c "npm install express cors body-parser && node ./mock-proof-server.js"
+    ports:
+      - "6300:6300"
+    profiles: ["mock"]
+    environment:
+      - PORT=6300
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:6300/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - sentinel-network
+
+  # Redis (for both modes)
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    profiles: ["mock", "real"]
+
+networks:
+  sentinel-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local

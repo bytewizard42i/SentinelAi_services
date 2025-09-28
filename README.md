@@ -9,11 +9,21 @@
   <p><b>AI Watchdog</b> | <b>AI Funds Protection</b> | <b>AI Profile Allocation</b></p>
 </div>
 
-## ✅ CURRENT STATUS: SERVICES ACTIVE - v2.0 (pressing-our-luck branch)
+## ✅ CURRENT STATUS: SERVICES ACTIVE - v2.0 (feat/real-proof-server branch)
+
+> ⚠️ **Proof Server Mode**: Currently configured for dual-mode operation (MOCK/REAL)
+> 
+> Use `make proof-status` to check current mode | `make proof-real` for production | `make proof-mock` for demos
 
 - **Backend API**: http://localhost:3000 (Healthy ✅)
 - **Frontend Dashboard**: http://localhost:3001 (Running ✅)
 - **Risk Assessment Quiz**: http://localhost:3001/risk-tolerance-quiz.html (Available ✅)
+
+### ⚠️ IMPORTANT: Mock Proof Server Status
+- **Currently Running**: Mock proof server (not real Midnight proof server)
+- **Port 6300**: Occupied by HydraJTS mock server
+- **Impact**: No real ZK proofs, all blockchain operations are simulated
+- **To Fix**: Need to stop mock server and start official Midnight Docker container
 
 ### 🎉 NEW FEATURES (v2.0):
 - **Admin Settings Panel** - Granular control over each AI pillar with detailed help tooltips

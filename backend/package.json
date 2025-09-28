@@ -11,7 +11,12 @@
     "compile-contracts": "bun scripts/compile-contracts.js",
     "start:node": "node src/index.js",
     "install:bun": "bun install",
-    "install:npm": "npm install"
+    "install:npm": "npm install",
+    "proof:real": "docker compose -f ../docker-compose.profiles.yml --profile real up -d",
+    "proof:mock": "docker compose -f ../docker-compose.profiles.yml --profile mock up -d",
+    "proof:logs": "docker logs -f midnight-proof 2>/dev/null || docker logs -f mock-proof-server",
+    "proof:stop": "docker compose -f ../docker-compose.profiles.yml down",
+    "proof:status": "curl -s http://localhost:6300/health | jq . || echo 'No proof server running'"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.8.1",
