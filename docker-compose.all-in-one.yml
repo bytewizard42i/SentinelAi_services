@@ -1,0 +1,145 @@
+# ==============================================================================
+# 🚀 SentinelAI Services - Complete One-Button Docker Stack
+# ==============================================================================
+# This docker-compose file runs the ENTIRE SentinelAI demo with one command!
+# No setup required - just run: docker-compose -f docker-compose.all-in-one.yml up
+# ==============================================================================
+
+version: '3.9'
+
+services:
+  # =============================================================================
+  # 🎯 FRONTEND - React Dashboard with all simulations
+  # =============================================================================
+  frontend:
+    image: node:20-alpine
+    container_name: sentinel-frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Anonymous volume for node_modules
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://backend:3000
+      - PORT=3001
+    command: sh -c "npm install && npm start"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - sentinel-network
+
+  # =============================================================================
+  # 🔧 BACKEND - Node.js API with AI services
+  # =============================================================================
+  backend:
+    image: oven/bun:latest
+    container_name: sentinel-backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - /app/node_modules  # Anonymous volume for node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - PROOF_SERVER_URL=http://proof-server:6300
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://sentinel:sentinel123@postgres:5432/sentinelai
+      - USE_MOCK=true
+    command: sh -c "bun install && bun start"
+    depends_on:
+      - redis
+      - postgres
+      - proof-server
+    restart: unless-stopped
+    networks:
+      - sentinel-network
+
+  # =============================================================================
+  # 🔐 PROOF SERVER - Mock Midnight Network proof server
+  # =============================================================================
+  proof-server:
+    image: node:20-alpine
+    container_name: sentinel-proof-server
+    working_dir: /app
+    volumes:
+      - ./backend:/app  # Uses the mock server from backend
+    ports:
+      - "6300:6300"
+    environment:
+      - PORT=6300
+    command: sh -c "npm install && node src/services/mock-proof-server.js"
+    restart: unless-stopped
+    networks:
+      - sentinel-network
+
+  # =============================================================================
+  # 📦 REDIS - In-memory data store for sessions
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - sentinel-network
+
+  # =============================================================================
+  # 🗄️ POSTGRESQL - Database for treasury data
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: sentinel-postgres
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel123
+      POSTGRES_DB: sentinelai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - sentinel-network
+
+  # =============================================================================
+  # 🌐 NGINX - Reverse proxy (optional, for production-like setup)
+  # =============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: sentinel-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - sentinel-network
+
+# =============================================================================
+# 🔗 NETWORKS
+# =============================================================================
+networks:
+  sentinel-network:
+    driver: bridge
+    name: sentinel-network
+
+# =============================================================================
+# 💾 VOLUMES
+# =============================================================================
+volumes:
+  redis-data:
+    name: sentinel-redis-data
+  postgres-data:
+    name: sentinel-postgres-data
