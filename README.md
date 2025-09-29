@@ -256,6 +256,4 @@ docker-compose restart eliza-agent
 
 ## Team Members
 - **John Santi** - Lead Developer
-- **Cassie (AI Assistant)** - Architecture & Implementation
 
-*Maintained collaboratively for the hackathon.*
