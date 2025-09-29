@@ -1,4 +1,11 @@
-# 🚀 SentinelAI Quick Start Guide
+# 🚀 SentinelAI Quick Start Guide - CURRENT STATUS: SERVICES RUNNING ✅
+
+## ✅ Current Service Status (Live)
+
+- **Backend API**: http://localhost:3000 ✅ (Healthy)
+- **Frontend Dashboard**: http://localhost:3001 ✅ (Running)
+- **Risk Quiz**: http://localhost:3001/risk-tolerance-quiz.html ✅ (Available)
+- **Proof Server**: Manual setup required (not running in Docker)
 
 ## Prerequisites
 - Docker & Docker Compose
@@ -8,23 +15,23 @@
 
 ## 🎯 5-Minute Setup
 
-### 1. Clone & Configure
+### Development Mode (Current Setup)
 ```bash
-git clone https://github.com/bytewizard42i/SentinelAi_services.git
-cd SentinelAi_services/SentinelAi_services-project
-cp backend/.env.example backend/.env
+# Install dependencies
+npm run setup  # or ./setup.sh
+
+# Start services manually
+cd backend && npm start &  # Runs on port 3000
+cd frontend && npm start   # Runs on port 3001
 ```
 
-### 2. Launch with Docker
+### Production Mode (Docker)
 ```bash
 # Start all services
 docker-compose -f docker-compose.production.yml up -d
 
 # Check status
 docker-compose -f docker-compose.production.yml ps
-
-# View logs
-docker-compose -f docker-compose.production.yml logs -f
 ```
 
 ### 3. Access Applications

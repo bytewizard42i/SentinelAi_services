@@ -10,6 +10,7 @@ const SentinelDashboard = () => {
   const [userAnswers, setUserAnswers] = useState({});
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const [tooltipContent, setTooltipContent] = useState({ title: '', description: '' });
+<<<<<<< HEAD
   const [showEmergencyProtection, setShowEmergencyProtection] = useState(false);
   const [protectionAllocations, setProtectionAllocations] = useState({
     stablecoins: 60,
@@ -36,6 +37,8 @@ const SentinelDashboard = () => {
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
+=======
+>>>>>>> pressing-our-luck
   
   // Admin settings for each page
   const [adminSettings, setAdminSettings] = useState({
@@ -141,6 +144,7 @@ const SentinelDashboard = () => {
     }));
   };
 
+<<<<<<< HEAD
   // Simulate market downturn - move to safe assets
   const simulateMarketDownturn = () => {
     setIsRebalancing(true);
@@ -207,6 +211,8 @@ const SentinelDashboard = () => {
     alert('🔄 Attack counter reset to 0');
   };
 
+=======
+>>>>>>> pressing-our-luck
   // Help text for admin settings
   const settingsHelpText = {
     overview: {
@@ -708,6 +714,7 @@ const SentinelDashboard = () => {
     <div>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
         <h2 style={{color: '#667eea'}}>Dashboard Overview</h2>
+<<<<<<< HEAD
         <div style={{display: 'flex', gap: '10px'}}>
           <button
             onClick={() => {
@@ -764,6 +771,24 @@ const SentinelDashboard = () => {
             ⚙️ Admin Settings
           </button>
         </div>
+=======
+        <button
+          onClick={() => openAdminSettings('overview')}
+          style={{
+            backgroundColor: '#764ba2',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          ⚙️ Admin Settings
+        </button>
+>>>>>>> pressing-our-luck
       </div>
 
       <div style={{
@@ -826,6 +851,7 @@ const SentinelDashboard = () => {
           <h2 style={{color: '#667eea', marginBottom: '5px'}}>🛡️ Treasury Watchdog</h2>
           <p style={{color: '#a0aec0'}}>AI-powered anomaly detection for treasury security</p>
         </div>
+<<<<<<< HEAD
         <div style={{display: 'flex', gap: '10px'}}>
           <button
             onClick={() => {
@@ -902,6 +928,24 @@ const SentinelDashboard = () => {
             ⚙️ Admin Settings
           </button>
         </div>
+=======
+        <button
+          onClick={() => openAdminSettings('watchdog')}
+          style={{
+            backgroundColor: '#764ba2',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          ⚙️ Admin Settings
+        </button>
+>>>>>>> pressing-our-luck
       </div>
 
       <div style={{
@@ -1245,6 +1289,7 @@ const SentinelDashboard = () => {
 
   const Guardian = () => (
     <div>
+<<<<<<< HEAD
       <div style={{marginBottom: '20px'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
           <div>
@@ -1378,6 +1423,29 @@ const SentinelDashboard = () => {
             🔄 Reset
           </button>
         </div>
+=======
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+        <div>
+          <h2 style={{color: '#667eea', marginBottom: '5px'}}>⚖️ Market Guardian</h2>
+          <p style={{color: '#a0aec0'}}>Automated rebalancing based on market conditions</p>
+        </div>
+        <button
+          onClick={() => openAdminSettings('guardian')}
+          style={{
+            backgroundColor: '#764ba2',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          ⚙️ Admin Settings
+        </button>
+>>>>>>> pressing-our-luck
       </div>
 
       <div style={{
@@ -1863,10 +1931,14 @@ const SentinelDashboard = () => {
       <AdminSettingsModal />
       <QuestionnaireModal />
       <InfoTooltip />
+<<<<<<< HEAD
       <EmergencyProtectionModal />
       <MarketMetricsModal />
       </div>
     </>
+=======
+    </div>
+>>>>>>> pressing-our-luck
   );
 };
 
