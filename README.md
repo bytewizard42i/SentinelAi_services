@@ -3,37 +3,33 @@
 <div align="center">
   <img src="media/sentinelAi-banner-photo-1.png" alt="SentinelAI Services Banner" width="100%">
 </div>
-
 🏆 **Dega-Midnight Hackathon Submission** | [Live Demo](https://youtu.be/demo) | [DoraHacks](https://dorahacks.io/hackathon/ai-treasury-management/ideaism)
 
 > **One-click deployment** of three-tier AI governance for DAO treasury management with privacy-preserving Midnight Network integration and comprehensive simulation testing.
 
 <div align="center">
   <img src="media/ChatGPT Image Sep 22, 2025, 05_43_46 PM.png" alt="SentinelAI Services - Three Pillars" width="100%">
-  <p><b>AI Watchdog</b> | <b>AI Funds Protection</b> | <b>AI Profile Allocation</b></p>
 </div>
 
-<<<<<<< HEAD
 ## ✅ CURRENT STATUS: PRODUCTION READY - v2.1 (main branch)
-=======
-## ✅ CURRENT STATUS: SERVICES ACTIVE - v2.0 (pressing-our-luck branch)
 
-- **Backend API**: http://localhost:3000 (Healthy ✅)
-- **Frontend Dashboard**: http://localhost:3001 (Running ✅)
-- **Risk Assessment Quiz**: http://localhost:3001/risk-tolerance-quiz.html (Available ✅)
-
-### 🎉 NEW FEATURES (v2.0):
-- **Admin Settings Panel** - Granular control over each AI pillar with detailed help tooltips
-- **Automated Profile Investor** - Intelligent risk assessment with Newbie/Expert modes
-- **Interactive Help System** - Click (i) icons for detailed explanations of each setting
-- **Enhanced UI/UX** - User-friendly interface with intuitive controls
-
-## 🚀 Quickstart Demo: 10-Min Treasury Guardian Flow
->>>>>>> pressing-our-luck
-
-> ⚠️ **Dual-Mode Architecture**: Mock for demos, Real for production
+> ⚠️ **Working Demo Available**: Run frontend with `cd frontend && npm start` then visit http://localhost:3001
 >
-> Use `make proof-status` to check mode | `make proof-mock` for demos | `make proof-real` for production
+> **Dashboard Features**: Interactive UI, admin settings, help tooltips, risk profiler - all working!
+
+### ⚡ Quick Start - Working Demo
+
+```bash
+# Navigate to project directory
+cd SentinelAi_services-project
+
+# Start the frontend dashboard
+cd frontend && npm start
+
+# Open browser to: http://localhost:3001
+```
+
+**That's it!** The dashboard will be running with all interactive features working.
 
 ### ⚡ One-Click Setup
 
@@ -111,13 +107,32 @@ npm test
 ## Resources
 
 - **ElizaOS Fork**: https://github.com/bytewizard42i/Eliza-Base-Agent-johns_copy
-- **Midnight MCP Fork**: https://github.com/bytewizard42i/midnight-mcp-johns_copy
 
 ## Project Overview
 
 SentinelAI Services is our submission for the DEGA Hackathon – AI for DAO Treasury Management on Midnight. This project builds privacy-preserving AI agents for DAO treasury management, enabling natural language interactions for wallet management, token transfers, and governance (proposals/voting/withdrawals) using Midnight's zero-knowledge privacy features.
 
-### 🎮 **Simulation Testing Suite**
+## 🎮 **Interactive Dashboard Features**
+
+The dashboard provides a complete AI-powered treasury management interface:
+
+### **Dashboard Tabs:**
+- **📊 Overview**: Treasury metrics, risk profile summary, active alerts
+- **🛡️ Watchdog**: Security monitoring interface with admin controls
+- **⚖️ Guardian**: Market rebalancing controls and settings
+- **👤 Risk Profiler**: Interactive risk assessment tools
+
+### **Interactive Elements:**
+- **⚙️ Admin Settings**: Granular controls for each AI pillar
+- **ℹ️ Help Tooltips**: Click (i) icons for detailed explanations
+- **🤖 Risk Profiler**: "Auto Profile Investor" questionnaire
+- **🎨 Professional UI**: Dark theme with responsive design
+
+### Goals
+- Automate DAO treasury tasks with AI (e.g., asset allocation, secure workflows).
+- Ensure privacy: Untraceable transactions and unlinkable votes.
+
+## 🎮 **Simulation Testing Suite**
 
 Test AI responses to various scenarios with **live animated portfolio allocations**:
 
@@ -151,12 +166,6 @@ Test AI responses to various scenarios with **live animated portfolio allocation
 - **Animated Portfolio Bars** - Watch allocations slide during simulations
 - **Rebalancing Feedback** - Visual indicators during AI processing
 - **Admin Settings Integration** - Allocations respect min/max stablecoin settings
-
-### Goals
-- Automate DAO treasury tasks with AI (e.g., asset allocation, secure workflows).
-- Ensure privacy: Untraceable transactions and unlinkable votes.
-{{ ... }}
-
 ### Setup Instructions
 Refer to the parsed workshop instructions in `Hackathon_Workshop_Instructions.md` for detailed setup.
 
