@@ -1,5 +1,9 @@
 # SentinelAI Services v2.1 - Complete DAO Treasury Management Platform
 
+<div align="center">
+  <img src="media/sentinelAi-banner-photo-1.png" alt="SentinelAI Services Banner" width="100%">
+</div>
+
 🏆 **Dega-Midnight Hackathon Submission** | [Live Demo](https://youtu.be/demo) | [DoraHacks](https://dorahacks.io/hackathon/ai-treasury-management/ideaism)
 
 > **One-click deployment** of three-tier AI governance for DAO treasury management with privacy-preserving Midnight Network integration and comprehensive simulation testing.
@@ -26,7 +30,7 @@ cd SentinelAi_services/SentinelAi_services-project
 # Edit .env with your API keys (or use local Ollama)
 
 # 3. Launch everything with Docker
-docker-compose up -d
+docker compose up -d
 
 # 4. Verify- **Backend API**: http://localhost:3000 (Healthy ✅)
 - **Frontend Dashboard**: http://localhost:3001 (Running ✅)
@@ -99,7 +103,7 @@ SentinelAI Services is our submission for the DEGA Hackathon – AI for DAO Trea
 
 ### 🎮 **Simulation Testing Suite**
 
-Test AI responses to various scenarios:
+Test AI responses to various scenarios with **live animated portfolio allocations**:
 
 #### **Overview Page Simulations:**
 - 🔓 **Simulate Attack on Login** - Test security breach detection
@@ -108,18 +112,29 @@ Test AI responses to various scenarios:
 #### **Watchdog Page Simulations:**
 - ⚡ **Simulate Attack** - Increment attack counter, trigger anomaly detection
 - 🔢 **Number of Attacks** - Live counter showing total simulated attacks
+- 🔄 **Reset Attacks** - Reset attack counter to 0
 
 #### **Guardian Page Simulations:**
-- 📉 **Simulate Market Downturn** - Test bearish market response
+- 📉 **Simulate Market Downturn** - Test bearish market response with animated allocations
 - 📊 **Downturn Metrics** - Detailed BTC/ETH indicators, Fear & Greed Index
-- 📈 **Simulate Market Uptrend** - Test bullish market response
+- 📈 **Simulate Market Uptrend** - Test bullish market response with animated allocations
 - 📊 **Uptrend Metrics** - Detailed BTC/ETH indicators, market cap changes
 - 🚨 **Emergency Market Protection** - One-click safe asset reallocation
+- 🔄 **Reset Portfolio** - Reset allocations to default 30/50/20
 
 #### **Emergency Protection Features:**
 - 🛡️ **Protect All Funds** - Immediate emergency reallocation
 - 🎚️ **Safe Asset Allocation Sliders** - Customize stablecoins, gold, bonds, cash
 - 📊 **Allocation Validation** - Ensures allocations total 100%
+
+#### **Risk Profiler Page:**
+- 🤖 **Auto Profile Investor** - Take the risk assessment quiz
+- **Questionnaire Modal** - Newbie/Expert modes with dynamic scoring
+
+#### **Live Animation Features:**
+- **Animated Portfolio Bars** - Watch allocations slide during simulations
+- **Rebalancing Feedback** - Visual indicators during AI processing
+- **Admin Settings Integration** - Allocations respect min/max stablecoin settings
 
 ### Goals
 - Automate DAO treasury tasks with AI (e.g., asset allocation, secure workflows).

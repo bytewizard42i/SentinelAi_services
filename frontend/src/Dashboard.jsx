@@ -19,6 +19,23 @@ const SentinelDashboard = () => {
   });
   const [attackCount, setAttackCount] = useState(0);
   const [showMarketMetrics, setShowMarketMetrics] = useState(null); // 'downturn' or 'uptrend'
+  const [showSplash, setShowSplash] = useState(true);
+  
+  // Live portfolio allocations that update with simulations
+  const [portfolioAllocations, setPortfolioAllocations] = useState({
+    stablecoins: 30,
+    majorCryptos: 50,
+    growthAssets: 20
+  });
+  const [isRebalancing, setIsRebalancing] = useState(false);
+  
+  // Hide splash after 2 seconds
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Admin settings for each page
   const [adminSettings, setAdminSettings] = useState({
@@ -122,6 +139,72 @@ const SentinelDashboard = () => {
         [key]: value
       }
     }));
+  };
+
+  // Simulate market downturn - move to safe assets
+  const simulateMarketDownturn = () => {
+    setIsRebalancing(true);
+    
+    // Calculate target allocations based on admin settings
+    const targetStable = Math.min(adminSettings.profiler.maxStablecoin + 20, 70); // Move to higher stable
+    const remainingPercent = 100 - targetStable;
+    const targetMajor = Math.floor(remainingPercent * 0.7);
+    const targetGrowth = remainingPercent - targetMajor;
+    
+    // Animate the rebalancing over time
+    setTimeout(() => {
+      setPortfolioAllocations({
+        stablecoins: targetStable,
+        majorCryptos: targetMajor,
+        growthAssets: targetGrowth
+      });
+      
+      setTimeout(() => {
+        setIsRebalancing(false);
+        alert(`📉 Market downturn detected! Rebalanced to safer allocation:\n\nStablecoins: ${targetStable}%\nMajor Cryptos: ${targetMajor}%\nGrowth Assets: ${targetGrowth}%\n\nGuardian AI protected your funds!`);
+      }, 1000);
+    }, 500);
+  };
+
+  // Simulate market uptrend - move to growth assets  
+  const simulateMarketUptrend = () => {
+    setIsRebalancing(true);
+    
+    // Calculate target allocations for growth
+    const targetStable = Math.max(adminSettings.profiler.minStablecoin, 15); // Reduce stables
+    const remainingPercent = 100 - targetStable;
+    const targetGrowth = Math.floor(remainingPercent * 0.4);
+    const targetMajor = remainingPercent - targetGrowth;
+    
+    // Animate the rebalancing
+    setTimeout(() => {
+      setPortfolioAllocations({
+        stablecoins: targetStable,
+        majorCryptos: targetMajor,
+        growthAssets: targetGrowth
+      });
+      
+      setTimeout(() => {
+        setIsRebalancing(false);
+        alert(`📈 Market uptrend detected! Rebalanced for growth:\n\nStablecoins: ${targetStable}%\nMajor Cryptos: ${targetMajor}%\nGrowth Assets: ${targetGrowth}%\n\nGuardian AI optimizing for opportunity!`);
+      }, 1000);
+    }, 500);
+  };
+
+  // Reset portfolio to default allocations
+  const resetPortfolioAllocations = () => {
+    setPortfolioAllocations({
+      stablecoins: 30,
+      majorCryptos: 50,
+      growthAssets: 20
+    });
+    alert('🔄 Portfolio allocations reset to default: 30% Stablecoins, 50% Major Cryptos, 20% Growth Assets');
+  };
+
+  // Reset attack counter
+  const resetAttackCount = () => {
+    setAttackCount(0);
+    alert('🔄 Attack counter reset to 0');
   };
 
   // Help text for admin settings
@@ -785,6 +868,24 @@ const SentinelDashboard = () => {
             🔢 Number of Attacks: {attackCount}
           </button>
           <button
+            onClick={resetAttackCount}
+            style={{
+              backgroundColor: '#667eea',
+              color: 'white',
+              border: 'none',
+              padding: '8px 12px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '0.9rem'
+            }}
+            title="Reset attack counter to 0"
+          >
+            🔄 Reset
+          </button>
+          <button
             onClick={() => openAdminSettings('watchdog')}
             style={{
               backgroundColor: '#764ba2',
@@ -1191,9 +1292,7 @@ const SentinelDashboard = () => {
         {/* Market Simulation Buttons */}
         <div style={{display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px'}}>
           <button
-            onClick={() => {
-              alert('📉 Simulating market downturn... Guardian rebalancing to safe assets!');
-            }}
+            onClick={simulateMarketDownturn}
             style={{
               backgroundColor: '#ff3366',
               color: 'white',
@@ -1225,9 +1324,7 @@ const SentinelDashboard = () => {
             📊
           </button>
           <button
-            onClick={() => {
-              alert('📈 Simulating market uptrend... Guardian optimizing for growth!');
-            }}
+            onClick={simulateMarketUptrend}
             style={{
               backgroundColor: '#00ff88',
               color: '#1a1f2e',
@@ -1258,6 +1355,28 @@ const SentinelDashboard = () => {
           >
             📊
           </button>
+          <div style={{borderLeft: '2px solid #667eea', height: '30px', margin: '0 10px'}}></div>
+          <button
+            onClick={resetPortfolioAllocations}
+            style={{
+              backgroundColor: '#667eea',
+              color: 'white',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.9rem',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#7b8cff' }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#667eea' }}
+            title="Reset allocations to default"
+          >
+            🔄 Reset
+          </button>
         </div>
       </div>
 
@@ -1287,12 +1406,14 @@ const SentinelDashboard = () => {
         padding: '20px',
         borderRadius: '8px'
       }}>
-        <h3 style={{color: '#ffffff', marginBottom: '15px'}}>Portfolio Allocation</h3>
+        <h3 style={{color: '#ffffff', marginBottom: '15px'}}>
+          Portfolio Allocation {isRebalancing && <span style={{color: '#ffa500'}}>(Rebalancing...)</span>}
+        </h3>
         <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
           <div>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
               <span style={{color: '#a0aec0'}}>Stablecoins</span>
-              <span style={{color: '#ffffff'}}>30%</span>
+              <span style={{color: '#ffffff'}}>{portfolioAllocations.stablecoins}%</span>
             </div>
             <div style={{
               height: '8px',
@@ -1301,16 +1422,17 @@ const SentinelDashboard = () => {
               overflow: 'hidden'
             }}>
               <div style={{
-                width: '30%',
+                width: `${portfolioAllocations.stablecoins}%`,
                 height: '100%',
-                backgroundColor: '#00ff88'
+                backgroundColor: '#00ff88',
+                transition: 'width 1s ease-in-out'
               }}></div>
             </div>
           </div>
           <div>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
               <span style={{color: '#a0aec0'}}>Major Cryptos</span>
-              <span style={{color: '#ffffff'}}>50%</span>
+              <span style={{color: '#ffffff'}}>{portfolioAllocations.majorCryptos}%</span>
             </div>
             <div style={{
               height: '8px',
@@ -1319,16 +1441,17 @@ const SentinelDashboard = () => {
               overflow: 'hidden'
             }}>
               <div style={{
-                width: '50%',
+                width: `${portfolioAllocations.majorCryptos}%`,
                 height: '100%',
-                backgroundColor: '#667eea'
+                backgroundColor: '#667eea',
+                transition: 'width 1s ease-in-out'
               }}></div>
             </div>
           </div>
           <div>
             <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
-              <span style={{color: '#a0aec0'}}>Altcoins</span>
-              <span style={{color: '#ffffff'}}>20%</span>
+              <span style={{color: '#a0aec0'}}>Growth Assets</span>
+              <span style={{color: '#ffffff'}}>{portfolioAllocations.growthAssets}%</span>
             </div>
             <div style={{
               height: '8px',
@@ -1337,9 +1460,10 @@ const SentinelDashboard = () => {
               overflow: 'hidden'
             }}>
               <div style={{
-                width: '20%',
+                width: `${portfolioAllocations.growthAssets}%`,
                 height: '100%',
-                backgroundColor: '#764ba2'
+                backgroundColor: '#764ba2',
+                transition: 'width 1s ease-in-out'
               }}></div>
             </div>
           </div>
@@ -1348,12 +1472,22 @@ const SentinelDashboard = () => {
         <div style={{
           marginTop: '20px',
           padding: '15px',
-          backgroundColor: '#1a1f2e',
+          backgroundColor: isRebalancing ? '#2a1e00' : '#1a1f2e',
           borderRadius: '8px',
-          textAlign: 'center'
+          textAlign: 'center',
+          transition: 'background-color 0.5s ease'
         }}>
-          <div style={{color: '#00ff88', marginBottom: '10px'}}>🟢 Maintain Current Allocation</div>
-          <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>Market conditions are neutral - no rebalancing needed</p>
+          {isRebalancing ? (
+            <>
+              <div style={{color: '#ffa500', marginBottom: '10px'}}>⚡ AI Guardian Rebalancing Portfolio</div>
+              <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>Optimizing allocation based on market conditions...</p>
+            </>
+          ) : (
+            <>
+              <div style={{color: '#00ff88', marginBottom: '10px'}}>🟢 Current Allocation Active</div>
+              <p style={{color: '#a0aec0', fontSize: '0.9rem'}}>Click simulation buttons to test rebalancing</p>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -1457,14 +1591,95 @@ const SentinelDashboard = () => {
     </div>
   );
 
-  return (
+  // Splash Screen Component
+  const SplashScreen = () => (
     <div style={{
-      padding: '20px',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       backgroundColor: '#0f1419',
-      color: '#ffffff',
-      minHeight: '100vh',
-      fontFamily: 'Arial, sans-serif'
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9999,
+      animation: 'fadeOut 0.5s ease-in-out 1.5s forwards'
     }}>
+      <style>{`
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; visibility: hidden; }
+        }
+        @keyframes pulseGlow {
+          0% { filter: brightness(1); }
+          50% { filter: brightness(1.2); }
+          100% { filter: brightness(1); }
+        }
+      `}</style>
+      <img 
+        src="/media/sentinelAi-banner-photo-1.png" 
+        alt="SentinelAI Banner" 
+        style={{
+          maxWidth: '80%',
+          maxHeight: '60vh',
+          objectFit: 'contain',
+          animation: 'pulseGlow 2s ease-in-out infinite',
+          marginBottom: '30px'
+        }}
+      />
+      <h1 style={{
+        color: '#667eea',
+        fontSize: '3rem',
+        marginBottom: '10px',
+        textShadow: '0 0 20px rgba(102, 126, 234, 0.5)'
+      }}>
+        SentinelAI Services
+      </h1>
+      <p style={{
+        color: '#a0aec0',
+        fontSize: '1.2rem',
+        textAlign: 'center'
+      }}>
+        AI-Powered DAO Treasury Management
+      </p>
+      <div style={{
+        marginTop: '30px',
+        width: '200px',
+        height: '4px',
+        backgroundColor: '#1a1f2e',
+        borderRadius: '2px',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#00ff88',
+          animation: 'loadingBar 2s ease-in-out'
+        }}></div>
+      </div>
+      <style>{`
+        @keyframes loadingBar {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
+    </div>
+  );
+
+  return (
+    <>
+      {showSplash && <SplashScreen />}
+      <div style={{
+        padding: '20px',
+        backgroundColor: '#0f1419',
+        color: '#ffffff',
+        minHeight: '100vh',
+        fontFamily: 'Arial, sans-serif',
+        opacity: showSplash ? 0 : 1,
+        transition: 'opacity 0.5s ease-in-out'
+      }}>
       <header style={{
         backgroundColor: '#1a1f2e',
         padding: '20px',
@@ -1650,7 +1865,8 @@ const SentinelDashboard = () => {
       <InfoTooltip />
       <EmergencyProtectionModal />
       <MarketMetricsModal />
-    </div>
+      </div>
+    </>
   );
 };
 
