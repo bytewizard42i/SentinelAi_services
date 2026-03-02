@@ -3,7 +3,7 @@
 <div align="center">
   <img src="media/sentinelAi-banner-photo-1.png" alt="SentinelAI Services Banner" width="100%">
 </div>
-🏆 **Dega-Midnight Hackathon Submission** | [Live Demo](https://youtu.be/demo) | [DoraHacks](https://dorahacks.io/hackathon/ai-treasury-management/ideaism)
+🏆 **Dega-Midnight Hackathon Submission** | [Live Demo](https://youtu.be/demo) *(link pending)* | [DoraHacks](https://dorahacks.io/hackathon/ai-treasury-management/ideaism)
 
 > **One-click deployment** of three-tier AI governance for DAO treasury management with privacy-preserving Midnight Network integration and comprehensive simulation testing.
 
@@ -54,7 +54,7 @@ docker compose up -d
 
 | Component | Mock Mode | Real Mode | Status |
 |-----------|-----------|-----------|--------|
-| Proof Server | `midnightnetwork/proof-server:latest` | Real Midnight v4.0.0 | ✅ Available |
+| Proof Server | `midnightnetwork/proof-server:latest` | Real Midnight v7.0.0 | ✅ Available |
 | Port | 6300 | 6301 | ✅ Configured |
 | Performance | Fast responses | Real ZK proofs | ✅ Functional |
 | Use Case | Demos/Presentations | Production | ✅ Ready |
