@@ -255,5 +255,5 @@ docker-compose restart eliza-agent
 ```
 
 ## Team Members
-- **John Santi** - Lead Developer
+- **John Santi** - Lead Developer — Midnight NightForce Bravo | Midnight Academy Triple Certified | Cardano Certified Blockchain Associate | Emurgo Certified Blockchain Business Consultant | Midnight Ambassador
 

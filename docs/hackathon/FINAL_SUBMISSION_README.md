@@ -5,7 +5,7 @@
 **Submission Date:** September 23, 2025
 **Hackathon:** DoraHacks AI Treasury Management
 **Platform:** Midnight Network
-**Team:** John Santi & AI Assistant (Cassie)
+**Team:** John Santi (Midnight NightForce Bravo | Midnight Academy Triple Certified | Cardano Certified Blockchain Associate | Emurgo Certified Blockchain Business Consultant | Midnight Ambassador) & AI Assistant (Cassie)
 
 ---
 

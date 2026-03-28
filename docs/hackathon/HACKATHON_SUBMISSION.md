@@ -2,7 +2,7 @@
 ## Dega-Midnight Hackathon Submission
 
 ### Team
-- **John Santi** - Lead Developer
+- **John Santi** - Lead Developer — Midnight NightForce Bravo | Midnight Academy Triple Certified | Cardano Certified Blockchain Associate | Emurgo Certified Blockchain Business Consultant | Midnight Ambassador
 - **Cassie (AI Assistant)** - Architecture & Implementation
 
 ---
