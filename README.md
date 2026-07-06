@@ -267,3 +267,14 @@ SentinelAI is a **consumer product** built on the DIDz three-pillar model:
 - **RWAz (object identity):** Not directly used — SentinelAI focuses on financial risk, not asset identity.
 
 SentinelAI uses `MarketGuardian.compact` (8 circuits), `RiskProfiler.compact` (5 circuits), `TreasuryOrchestrator.compact` (7 circuits), and `TreasuryWatchdog.compact` (7 circuits).
+
+---
+
+## DIDz Ecosystem
+
+This project is part of the DIDz ecosystem — a suite of privacy-preserving
+identity, credential, and application tools built on Midnight Network.
+
+![DIDz Ecosystem Map](docs/DIDz-ecosystem-map.png)
+
+See the full ecosystem map above, or visit [didz.io](https://didz.io) for details.
