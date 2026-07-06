@@ -257,3 +257,13 @@ docker-compose restart eliza-agent
 ## Team Members
 - **John Santi** - Lead Developer — Midnight NightForce Bravo | Midnight Academy Triple Certified | Cardano Certified Blockchain Associate | Emurgo Certified Blockchain Business Consultant | Midnight Ambassador
 
+
+## Three-pillar connection
+
+SentinelAI is a **consumer product** built on the DIDz three-pillar model:
+
+- **DIDz (root identity):** Treasury managers hold a DIDz; SentinelAI verifies authorization without revealing who.
+- **AgenticDID (agent authority):** AI agents execute treasury actions via scoped grants with risk-level constraints.
+- **RWAz (object identity):** Not directly used — SentinelAI focuses on financial risk, not asset identity.
+
+SentinelAI uses `MarketGuardian.compact` (8 circuits), `RiskProfiler.compact` (5 circuits), `TreasuryOrchestrator.compact` (7 circuits), and `TreasuryWatchdog.compact` (7 circuits).
