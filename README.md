@@ -258,6 +258,25 @@ docker-compose restart eliza-agent
 - **John Santi** - Lead Developer — Midnight NightForce Bravo | Midnight Academy Triple Certified | Cardano Certified Blockchain Associate | Emurgo Certified Blockchain Business Consultant | Midnight Ambassador
 
 
+## turbovec Integration: Semantic Threat Detection
+
+[**turbovec**](https://github.com/RyanCodrai/turbovec) is a Rust vector search engine that compresses embeddings 8x, runs entirely locally, and supports allowlist-filtered search. It can enhance SentinelAI's anomaly detection and threat monitoring capabilities.
+
+### How turbovec serves SentinelAI
+
+SentinelAI's Treasury Watchdog (Tier 1) detects anomalies in DAO treasury behavior. turbovec can power semantic pattern matching for threat detection:
+
+- **Behavioral pattern indexing**: Embed known threat patterns (unusual withdrawal sequences, suspicious governance proposals, anomalous transfer patterns) as vectors. Index them with turbovec for fast similarity search.
+- **Real-time detection**: When a new transaction or behavior occurs, embed it and search against the threat pattern index. If it matches a known threat vector with high similarity, trigger the anomaly detection pipeline.
+- **Allowlist by treasury scope**: Filter search to only patterns relevant to the specific DAO treasury being monitored. Each treasury has different baselines, and the allowlist ensures detection only compares against applicable threat models.
+- **Local and private**: Treasury behavior patterns are sensitive. turbovec runs locally, so behavioral signatures never leave the SentinelAI instance. No cloud service sees what patterns are being monitored.
+
+### Rust synergy
+
+turbovec is written in Rust. If SentinelAI's backend services are extended with Rust components (or via Python bindings), the threat detection pipeline benefits from Rust's performance and memory safety. The 8x memory compression means large pattern libraries can be held in-memory for sub-millisecond detection.
+
+---
+
 ## Three-pillar connection
 
 SentinelAI is a **consumer product** built on the DIDz three-pillar model:
