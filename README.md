@@ -277,6 +277,30 @@ turbovec is written in Rust. If SentinelAI's backend services are extended with 
 
 ---
 
+## Persistent Threat Defense
+
+SentinelAI now includes a tested prototype core for correlating low-and-slow
+hostile behavior across days and weeks. It combines deterministic campaign
+scoring with an optional, bounded Ai assessment, then recommends a local defense
+ladder: observe, challenge, throttle, contain, and emergency response.
+
+The component protects systems SentinelAI is authorized to defend. It does not
+hack back, disrupt remote infrastructure, or claim that a network indicator
+identifies the human attacker. Automatic actions are restricted to reversible
+controls inside the protected environment; disruptive containment and external
+reporting require human review.
+
+- Architecture and safety boundary:
+  [`docs/architecture/PERSISTENT_THREAT_DEFENSE.md`](docs/architecture/PERSISTENT_THREAT_DEFENSE.md)
+- Prototype service:
+  `backend/src/services/persistent-threat-defense.service.js`
+- Focused test: `cd backend && npm run test:persistent-defense`
+
+**Evidence label:** implemented and unit-tested prototype core. No live sensor,
+firewall, identity-provider, ZKSplunk, HelixCTW, or reporting integration yet.
+
+---
+
 ## Three-pillar connection
 
 SentinelAI is a **consumer product** built on the DIDz three-pillar model:
